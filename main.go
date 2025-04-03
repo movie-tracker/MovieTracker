@@ -2,8 +2,22 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/movie-tracker/MovieTracker/internal/config"
 )
 
 func main() {
-	fmt.Println("Hello, world!")
+	var cfg config.ApiConfig = config.NewApiConfig()
+
+	server := gin.Default()
+	server.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	server.Run(address)
 }
