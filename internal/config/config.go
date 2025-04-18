@@ -21,9 +21,18 @@ func envOrDefaultInt(key string, defaultValue int) int {
 	}
 }
 
+type DatabaseConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+}
+
 type ApiConfig struct {
 	Host string
 	Port int
+
+	Database *DatabaseConfig
 }
 
 func NewApiConfig() ApiConfig {
@@ -35,5 +44,11 @@ func NewApiConfig() ApiConfig {
 	return ApiConfig{
 		Host: envOrDefault("HOST", "127.0.0.1"),
 		Port: envOrDefaultInt("PORT", 8080),
+		Database: &DatabaseConfig{
+			Host:     panicOnEmpty("DB_HOST"),
+			Port:     panicOnEmptyInt("DB_PORT"),
+			User:     panicOnEmpty("DB_USER"),
+			Password: panicOnEmpty("DB_PASSWORD"),
+		},
 	}
 }
