@@ -4,16 +4,21 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/movie-tracker/MovieTracker/internal/services"
 )
 
 type IUserController interface {
 	Register(gin.IRouter, string)
 }
 
-type UserController struct{}
+type UserController struct {
+	userService services.IUserService
+}
 
-func newUserController() IUserController {
-	return &UserController{}
+func newUserController(params ControllerParams) IUserController {
+	return &UserController{
+		userService: params.Svcs.UserService,
+	}
 }
 
 func (c *UserController) Register(router gin.IRouter, p string) {
