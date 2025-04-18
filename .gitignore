@@ -24,3 +24,8 @@ go.work.sum
 # env file
 .env
 tmp
+
+
+# Ignore postgres data
+.docker/postgresql
+!.docker/postgresql/.gitkeep
