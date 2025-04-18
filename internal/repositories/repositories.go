@@ -9,7 +9,7 @@ import (
 
 type RepositoryParams struct {
 	DB  *sql.DB
-	cfg *config.ApiConfig
+	cfg config.ApiConfig
 }
 
 type Repositories struct {
@@ -18,7 +18,7 @@ type Repositories struct {
 
 var gRepositories Repositories
 
-func InitRepositories(cfg *config.ApiConfig, conns connections.Connections) Repositories {
+func InitRepositories(cfg config.ApiConfig, conns connections.Connections) Repositories {
 	gRepositories = Repositories{}
 
 	params := RepositoryParams{

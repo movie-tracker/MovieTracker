@@ -33,7 +33,7 @@ type ApiConfig struct {
 	Host string
 	Port int
 
-	Database *DatabaseConfig
+	Database DatabaseConfig
 }
 
 func NewApiConfig() ApiConfig {
@@ -45,7 +45,7 @@ func NewApiConfig() ApiConfig {
 	return ApiConfig{
 		Host: envOrDefault("HOST", "127.0.0.1"),
 		Port: envOrDefaultInt("PORT", 8080),
-		Database: &DatabaseConfig{
+		Database: DatabaseConfig{
 			Name:     panicOnEmpty("DB_NAME"),
 			Host:     panicOnEmpty("DB_HOST"),
 			Port:     panicOnEmptyInt("DB_PORT"),
