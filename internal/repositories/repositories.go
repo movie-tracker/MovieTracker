@@ -13,7 +13,7 @@ type RepositoryParams struct {
 }
 
 type Repositories struct {
-	userRepo IUserRepository
+	UserRepo IUserRepository
 }
 
 var gRepositories Repositories
@@ -26,7 +26,7 @@ func InitRepositories(cfg config.ApiConfig, conns connections.Connections) Repos
 		cfg: cfg,
 	}
 
-	gRepositories.userRepo = newUserRepository(params)
+	gRepositories.UserRepo = newUserRepository(params)
 
 	return gRepositories
 }
