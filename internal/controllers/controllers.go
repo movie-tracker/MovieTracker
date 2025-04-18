@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"github.com/movie-tracker/MovieTracker/internal/config"
 	"github.com/movie-tracker/MovieTracker/internal/services"
+	"github.com/movie-tracker/MovieTracker/internal/utils"
 )
 
 type IController interface {
@@ -39,10 +42,19 @@ func path(prefix string, path string) string {
 
 func MakeHandler(f func(*gin.Context) error) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if err := f(c); err != nil {
-			c.AbortWithStatusJSON(400, gin.H{
-				"error": err.Error(),
-			})
+		err := f(c)
+
+		if err == nil {
+			return
 		}
+
+		if apiErr, ok := err.(utils.IApiError); ok {
+			statusCode, response := apiErr.BuildError()
+			c.JSON(statusCode, response)
+			return
+		}
+
+		slog.Error("error handling request", "error", err)
+		c.AbortWithError(500, err)
 	}
 }

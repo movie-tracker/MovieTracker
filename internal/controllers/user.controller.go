@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,8 +25,9 @@ func newUserController(params ControllerParams) IUserController {
 
 func (c *UserController) Register(router gin.IRouter, p string) {
 	prefix := path(p, "/users")
-	router.GET(prefix, MakeHandler(c.FindAll)) // GET /users
-	router.POST(prefix, MakeHandler(c.Create)) // GET /users
+	router.GET(prefix, MakeHandler(c.FindAll))                               // GET /users
+	router.GET(path(prefix, "/by-email/:email"), MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
+	router.POST(prefix, MakeHandler(c.Create))                               // POST /users
 }
 
 func (c *UserController) FindAll(ctx *gin.Context) error {
@@ -35,6 +37,19 @@ func (c *UserController) FindAll(ctx *gin.Context) error {
 	}
 
 	ctx.IndentedJSON(http.StatusOK, users)
+	return nil
+}
+
+func (c *UserController) FindByEmail(ctx *gin.Context) error {
+	email := ctx.Param("email")
+
+	user, err := c.userService.FindByEmail(email)
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return err
+	}
+
+	ctx.IndentedJSON(http.StatusOK, user)
 	return nil
 }
 
