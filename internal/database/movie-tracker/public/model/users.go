@@ -15,7 +15,7 @@ type Users struct {
 	ID        int32 `sql:"primary_key"`
 	Name      string
 	Username  string
-	Phone     string
+	Phone     *string
 	Email     string
 	Password  string
 	CreatedAt *time.Time

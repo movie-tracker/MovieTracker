@@ -1,8 +1,15 @@
 package services
 
-import "github.com/movie-tracker/MovieTracker/internal/repositories"
+import (
+	"github.com/movie-tracker/MovieTracker/internal/repositories"
+	"github.com/movie-tracker/MovieTracker/internal/services/dto"
+)
+
+const COST = 14
 
 type IUserService interface {
+	FindAll() ([]dto.UserDTO, error)
+	Create(dto.UserCreateDTO) (dto.UserDTO, error)
 }
 
 type UserService struct {
@@ -15,4 +22,38 @@ func newUserService(params ServicesParams) IUserService {
 	return UserService{
 		userRepo: repos.UserRepo,
 	}
+}
+
+func (s UserService) FindAll() ([]dto.UserDTO, error) {
+	var err error
+	var userDTOs = make([]dto.UserDTO, 0)
+
+	users, err := s.userRepo.FindAll()
+	if err != nil {
+		return userDTOs, err
+	}
+
+	for _, user := range users {
+		userDTOs = append(userDTOs, dto.UserDTO{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+		})
+	}
+
+	return userDTOs, err
+}
+
+func (s UserService) Create(userDTO dto.UserCreateDTO) (createdUserDTO dto.UserDTO, err error) {
+	user := userDTO.ToModel()
+
+	createdUser, err := s.userRepo.Create(user)
+
+	if err != nil {
+		return
+	}
+
+	createdUserDTO.FromModel(createdUser)
+
+	return
 }
