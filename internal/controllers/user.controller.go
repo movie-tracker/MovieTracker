@@ -10,7 +10,7 @@ import (
 )
 
 type IUserController interface {
-	Register(gin.IRouter, string)
+	IController
 }
 
 type UserController struct {

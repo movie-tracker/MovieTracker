@@ -12,6 +12,7 @@ const COST = 14
 type IUserService interface {
 	FindAll() ([]dto.UserDTO, error)
 	FindByEmail(email string) (dto.UserDTO, error)
+	FindByUsername(username string) (dto.UserDTO, error)
 	Create(dto.UserCreateDTO) (dto.UserDTO, error)
 }
 
@@ -52,6 +53,24 @@ func (s UserService) FindByEmail(email string) (dto.UserDTO, error) {
 	var userDTO dto.UserDTO
 
 	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		switch err {
+		case qrm.ErrNoRows:
+			return userDTO, utils.NewNotFoundError("error.user.not_found")
+		default:
+			return userDTO, err
+		}
+	}
+
+	userDTO.FromModel(user)
+	return userDTO, err
+}
+
+func (s UserService) FindByUsername(username string) (dto.UserDTO, error) {
+	var err error
+	var userDTO dto.UserDTO
+
+	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
 		switch err {
 		case qrm.ErrNoRows:
