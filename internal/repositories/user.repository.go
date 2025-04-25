@@ -12,6 +12,7 @@ type IUserRepository interface {
 	FindAll() ([]model.Users, error)
 	FindOne(int32) (model.Users, error)
 	FindByEmail(string) (model.Users, error)
+	FindByUsername(string) (model.Users, error)
 	Create(user model.Users) (model.Users, error)
 	Update(user model.Users) (model.Users, error)
 }
@@ -54,6 +55,18 @@ func (r UserRepository) FindByEmail(email string) (model.Users, error) {
 
 	qb := SELECT(table.Users.AllColumns).FROM(table.Users).WHERE(table.Users.Email.EQ(String(email)))
 
+	err = qb.Query(r.DB, &user)
+
+	return user, err
+}
+
+func (r UserRepository) FindByUsername(username string) (model.Users, error) {
+	var err error
+	var user model.Users
+
+	qb := SELECT(table.Users.AllColumns).
+		FROM(table.Users).
+		WHERE(table.Users.Username.EQ(String(username)))
 	err = qb.Query(r.DB, &user)
 
 	return user, err
