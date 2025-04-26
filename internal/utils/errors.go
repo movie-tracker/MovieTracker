@@ -43,3 +43,17 @@ func NewNotFoundError(message string) *ApiError {
 		Code:    http.StatusNotFound,
 	}
 }
+
+func NewBadRequestError(message string) *ApiError {
+	return &ApiError{
+		Message: FallbackZero(message, "error.bad_request"),
+		Code:    http.StatusBadRequest,
+	}
+}
+
+func NewUnauthorizedError(message string) *ApiError {
+	return &ApiError{
+		Message: FallbackZero(message, "error.unauthorized"),
+		Code:    http.StatusUnauthorized,
+	}
+}

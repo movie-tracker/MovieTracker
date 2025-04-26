@@ -6,7 +6,12 @@ import (
 	"github.com/movie-tracker/MovieTracker/internal/repositories"
 )
 
+type IService interface {
+	ProvideServices(Services)
+}
+
 type Services struct {
+	AuthService IAuthService
 	UserService IUserService
 }
 
@@ -23,7 +28,13 @@ func NewServices(cfg config.ApiConfig, conns connections.Connections, repos repo
 		Repos: repos,
 	}
 
-	return Services{
+	var svcs = Services{
+		AuthService: newAuthService(params),
 		UserService: newUserService(params),
 	}
+
+	svcs.AuthService.ProvideServices(svcs)
+	svcs.UserService.ProvideServices(svcs)
+
+	return svcs
 }

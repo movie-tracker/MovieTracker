@@ -33,6 +33,10 @@ type ApiConfig struct {
 	Host string
 	Port int
 
+	// Authentication
+	AuthSecret   string
+	AuthTokenTTL int
+
 	Database DatabaseConfig
 }
 
@@ -52,5 +56,8 @@ func NewApiConfig() ApiConfig {
 			User:     panicOnEmpty("DB_USER"),
 			Password: panicOnEmpty("DB_PASSWORD"),
 		},
+
+		AuthSecret:   panicOnEmpty("AUTH_SECRET"),
+		AuthTokenTTL: envOrDefaultInt("AUTH_TOKEN_TTL", 60*24), // 24 hours
 	}
 }
