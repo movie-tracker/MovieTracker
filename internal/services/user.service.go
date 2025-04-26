@@ -5,15 +5,18 @@ import (
 	"github.com/movie-tracker/MovieTracker/internal/repositories"
 	"github.com/movie-tracker/MovieTracker/internal/services/dto"
 	"github.com/movie-tracker/MovieTracker/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const COST = 14
 
 type IUserService interface {
+	IService
 	FindAll() ([]dto.UserDTO, error)
 	FindByEmail(email string) (dto.UserDTO, error)
 	FindByUsername(username string) (dto.UserDTO, error)
 	Create(dto.UserCreateDTO) (dto.UserDTO, error)
+	ValidatePassword(username string, password string) error
 }
 
 type UserService struct {
@@ -27,6 +30,8 @@ func newUserService(params ServicesParams) IUserService {
 		userRepo: repos.UserRepo,
 	}
 }
+
+func (s UserService) ProvideServices(services Services) {}
 
 func (s UserService) FindAll() ([]dto.UserDTO, error) {
 	var err error
@@ -96,4 +101,21 @@ func (s UserService) Create(userDTO dto.UserCreateDTO) (createdUserDTO dto.UserD
 	createdUserDTO.FromModel(createdUser)
 
 	return
+}
+
+func (s UserService) ValidatePassword(username string, password string) error {
+	var err error
+	user, err := s.userRepo.FindByUsername(username)
+
+	if err != nil {
+		return utils.NewUnauthorizedError("")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if err != nil {
+		return utils.NewUnauthorizedError("")
+	}
+
+	return nil
 }

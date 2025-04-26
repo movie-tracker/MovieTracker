@@ -14,6 +14,7 @@ type IController interface {
 }
 
 type Controllers struct {
+	AuthController IAuthController
 	UserController IUserController
 }
 
@@ -28,11 +29,13 @@ func NewControllers(cfg config.ApiConfig, services services.Services) Controller
 		Svcs: services,
 	}
 	return Controllers{
+		AuthController: newAuthController(params),
 		UserController: newUserController(params),
 	}
 }
 
 func (c *Controllers) Register(router gin.IRouter, prefix string) {
+	c.AuthController.Register(router, prefix)
 	c.UserController.Register(router, prefix)
 }
 
