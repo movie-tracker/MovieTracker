@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/movie-tracker/MovieTracker/internal/services"
 	"github.com/movie-tracker/MovieTracker/internal/services/dto"
+	"github.com/movie-tracker/MovieTracker/internal/utils"
 )
 
 type IUserController interface {
@@ -25,9 +26,9 @@ func newUserController(params ControllerParams) IUserController {
 
 func (c *UserController) Register(router gin.IRouter, p string) {
 	prefix := path(p, "/users")
-	router.GET(prefix, MakeHandler(c.FindAll))                               // GET /users
-	router.GET(path(prefix, "/by-email/:email"), MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
-	router.POST(prefix, MakeHandler(c.Create))                               // POST /users
+	router.GET(prefix, utils.MakeHandler(c.FindAll))                               // GET /users
+	router.GET(path(prefix, "/by-email/:email"), utils.MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
+	router.POST(prefix, utils.MakeHandler(c.Create))                               // POST /users
 }
 
 func (c *UserController) FindAll(ctx *gin.Context) error {

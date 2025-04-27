@@ -11,6 +11,7 @@ import (
 type IAuthService interface {
 	IService
 	Login(username string, password string) (string, error)
+	ValidateToken(authToken string) (string, error)
 }
 
 type AuthService struct {
@@ -57,4 +58,21 @@ func (s *AuthService) Login(username string, password string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (s *AuthService) ValidateToken(authToken string) (string, error) {
+	var claims Claims
+
+	token, err := jwt.ParseWithClaims(authToken, &claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("error.token.invalid_token")
+		}
+		return s.authSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return "", utils.NewUnauthorizedError("error.token.invalid_or_expired")
+	}
+
+	return claims.Username, nil
 }
