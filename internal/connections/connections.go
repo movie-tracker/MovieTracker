@@ -12,17 +12,15 @@ type Connections struct {
 	DB *sql.DB
 }
 
-func NewConnections(cfg config.ApiConfig) Connections {
+func NewConnections(cfg config.ApiConfig) (conns Connections, err error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name)
 
-	db, err := sql.Open("postgres", connStr)
+	conns.DB, err = sql.Open("postgres", connStr)
 
 	if err != nil {
-		panic(err)
+		return
 	}
 
-	return Connections{
-		DB: db,
-	}
+	return
 }

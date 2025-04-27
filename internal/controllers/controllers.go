@@ -7,7 +7,7 @@ import (
 )
 
 type IController interface {
-	Register(gin.IRouter, string)
+	Register(ControllerRegisterParams)
 }
 
 type Controllers struct {
@@ -18,6 +18,11 @@ type Controllers struct {
 type ControllerParams struct {
 	Cfg  config.ApiConfig
 	Svcs services.Services
+}
+
+type ControllerRegisterParams struct {
+	Public        gin.IRouter
+	Authenticated gin.IRouter
 }
 
 func NewControllers(cfg config.ApiConfig, services services.Services) Controllers {
@@ -31,9 +36,9 @@ func NewControllers(cfg config.ApiConfig, services services.Services) Controller
 	}
 }
 
-func (c *Controllers) Register(router gin.IRouter, prefix string) {
-	c.AuthController.Register(router, prefix)
-	c.UserController.Register(router, prefix)
+func (c *Controllers) Register(params ControllerRegisterParams) {
+	c.AuthController.Register(params)
+	c.UserController.Register(params)
 }
 
 func path(prefix string, path string) string {
