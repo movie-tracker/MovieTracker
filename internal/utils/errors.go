@@ -4,6 +4,12 @@ import (
 	"net/http"
 )
 
+func PanicOnError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 type IApiError interface {
 	Error() string
 	BuildError() (int, any)

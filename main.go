@@ -7,21 +7,36 @@ import (
 	"github.com/movie-tracker/MovieTracker/internal/config"
 	"github.com/movie-tracker/MovieTracker/internal/connections"
 	"github.com/movie-tracker/MovieTracker/internal/controllers"
+	"github.com/movie-tracker/MovieTracker/internal/middlewares"
 	"github.com/movie-tracker/MovieTracker/internal/repositories"
 	"github.com/movie-tracker/MovieTracker/internal/services"
+	"github.com/movie-tracker/MovieTracker/internal/utils"
 )
 
 func main() {
+	var err error
+
+	// Load configuration
 	var cfg config.ApiConfig = config.NewApiConfig()
 
-	conns := connections.NewConnections(cfg)
-	repos := repositories.InitRepositories(cfg, conns)
-	services := services.NewServices(cfg, conns, repos)
-	controllers := controllers.NewControllers(cfg, services)
+	_connections, err := connections.NewConnections(cfg)
+
+	utils.PanicOnError(err)
+
+	_repositories := repositories.InitRepositories(cfg, _connections)
+	_services := services.NewServices(cfg, _connections, _repositories)
+	_controllers := controllers.NewControllers(cfg, _services)
 
 	server := gin.Default()
 
-	controllers.Register(server, "/")
+	public := server.Group("/api")
+	authenticated := server.Group("/api")
+	authenticated.Use(middlewares.JwtAuthMiddleware(_services.AuthService))
+
+	_controllers.Register(controllers.ControllerRegisterParams{
+		Public:        public,
+		Authenticated: authenticated,
+	})
 
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	server.Run(address)

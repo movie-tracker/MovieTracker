@@ -24,11 +24,12 @@ func newUserController(params ControllerParams) IUserController {
 	}
 }
 
-func (c *UserController) Register(router gin.IRouter, p string) {
-	prefix := path(p, "/users")
-	router.GET(prefix, utils.MakeHandler(c.FindAll))                               // GET /users
-	router.GET(path(prefix, "/by-email/:email"), utils.MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
-	router.POST(prefix, utils.MakeHandler(c.Create))                               // POST /users
+func (c *UserController) Register(params ControllerRegisterParams) {
+	router := params.Authenticated.Group("/users")
+
+	router.GET("", utils.MakeHandler(c.FindAll))                     // GET /users
+	router.GET("/by-email/:email", utils.MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
+	router.POST("", utils.MakeHandler(c.Create))                     // POST /users
 }
 
 func (c *UserController) FindAll(ctx *gin.Context) error {

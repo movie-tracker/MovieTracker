@@ -22,10 +22,11 @@ func newAuthController(params ControllerParams) IAuthController {
 	}
 }
 
-func (c *AuthController) Register(router gin.IRouter, prefix string) {
-	prefix = path(prefix, "/auth")
-	router.POST(path(prefix, "/login"), utils.MakeHandler(c.Login)) // POST /auth/login
-	// router.POST(path(prefix, "/register"), utils.MakeHandler(c.Register)) // POST /auth/register
+func (c *AuthController) Register(params ControllerRegisterParams) {
+	router := params.Public.Group("/auth")
+
+	router.POST("/login", utils.MakeHandler(c.Login)) // POST /auth/login
+	// router.POST("/register", utils.MakeHandler(c.Register)) // POST /auth/register
 }
 
 func (c *AuthController) Login(ctx *gin.Context) error {
