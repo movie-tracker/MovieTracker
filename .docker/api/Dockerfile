@@ -1,4 +1,4 @@
-FROM golang:1.23
+FROM golang:1.24
 WORKDIR /api
 
 RUN apt-get update -qq
@@ -9,6 +9,6 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-RUN make build EXECUTABLE="core-api-v3"
+RUN make build
 
-ENTRYPOINT ["core-api-v3"]
+ENTRYPOINT ["bin/movie-tracker-api"]

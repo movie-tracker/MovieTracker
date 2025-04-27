@@ -10,11 +10,32 @@ JET_CONSTR=postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAM
 JET=jet -dsn=$(JET_CONSTR) -schema=public -path=$(JET_PATH)
 
 
+OUTPUT_DIR=./bin
+OUTPUT_FILE=$(OUTPUT_DIR)/movie-tracker-api
+
+GO_ENTRYPOINT=main.go
+GO_FLAGS=
+
 .PHONY: run
 run:
 	@air || echo "air is not installed"
 
+.PHONY: build
+build: always $(OUTPUT_FILE)
 
+$(OUTPUT_FILE):
+	go build $(GO_FLAGS) -o $@ $(GO_ENTRYPOINT)
+
+.PHONY: clean
+clean:
+	rm -rf $(OUTPUT_DIR)
+
+.PHONY: always
+always:
+	mkdir -p $(OUTPUT_DIR)
+
+
+# docker
 .PHONY: compose_up
 compose_up:
 	$(DC) up -d --force-recreate
