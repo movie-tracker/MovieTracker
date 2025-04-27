@@ -33,7 +33,7 @@ func main() {
 	authenticated := server.Group("/api")
 	authenticated.Use(middlewares.JwtAuthMiddleware(_services.AuthService))
 
-	_controllers.Register(controllers.ControllerRegisterParams{
+	_controllers.RegisterHandlers(controllers.ControllerRegisterParams{
 		Public:        public,
 		Authenticated: authenticated,
 	})
