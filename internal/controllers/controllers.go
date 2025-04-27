@@ -7,7 +7,7 @@ import (
 )
 
 type IController interface {
-	Register(ControllerRegisterParams)
+	RegisterHandlers(ControllerRegisterParams)
 }
 
 type Controllers struct {
@@ -36,9 +36,9 @@ func NewControllers(cfg config.ApiConfig, services services.Services) Controller
 	}
 }
 
-func (c *Controllers) Register(params ControllerRegisterParams) {
-	c.AuthController.Register(params)
-	c.UserController.Register(params)
+func (c *Controllers) RegisterHandlers(params ControllerRegisterParams) {
+	c.AuthController.RegisterHandlers(params)
+	c.UserController.RegisterHandlers(params)
 }
 
 func path(prefix string, path string) string {

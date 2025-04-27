@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/movie-tracker/MovieTracker/internal/services/dto"
 	"github.com/movie-tracker/MovieTracker/internal/utils"
 )
 
 type IAuthService interface {
 	IService
 	Login(username string, password string) (string, error)
+	Register(userCreateDTO dto.UserCreateDTO) (dto.UserDTO, error)
 	ValidateToken(authToken string) (string, error)
 }
 
@@ -58,6 +60,15 @@ func (s *AuthService) Login(username string, password string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (s *AuthService) Register(userCreateDTO dto.UserCreateDTO) (dto.UserDTO, error) {
+	user, err := s.userService.Create(userCreateDTO)
+	if err != nil {
+		return dto.UserDTO{}, err
+	}
+
+	return user, nil
 }
 
 func (s *AuthService) ValidateToken(authToken string) (string, error) {

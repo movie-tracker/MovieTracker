@@ -24,7 +24,7 @@ func newUserController(params ControllerParams) IUserController {
 	}
 }
 
-func (c *UserController) Register(params ControllerRegisterParams) {
+func (c *UserController) RegisterHandlers(params ControllerRegisterParams) {
 	router := params.Authenticated.Group("/users")
 
 	router.GET("", utils.MakeHandler(c.FindAll))                     // GET /users
