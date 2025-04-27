@@ -17,3 +17,19 @@ services:
     volumes:
       - ./postgresql/data:/var/lib/postgresql/data
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  api:
+    build:
+      context: ../
+      dockerfile: ./.docker/api/Dockerfile
+    restart: unless-stopped
+    container_name: api
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: ../.env
+        required: true
+    environment:
+      - PORT=8080
+      - DB_HOST=db
+    depends_on:
+      - db

@@ -25,6 +25,9 @@ go.work.sum
 .env
 tmp
 
+# build dir
+bin
+
 
 # Ignore postgres data
 .docker/postgresql
