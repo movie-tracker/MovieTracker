@@ -16,7 +16,9 @@ func MakeHandler(f func(*gin.Context) error) gin.HandlerFunc {
 
 		if apiErr, ok := err.(IApiError); ok {
 			statusCode, response := apiErr.BuildError()
-			c.AbortWithStatusJSON(statusCode, response)
+			c.AbortWithStatusJSON(statusCode, gin.H{
+				"error": response,
+			})
 			return
 		}
 
