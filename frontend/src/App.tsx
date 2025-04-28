@@ -8,6 +8,7 @@ import AuthProvider from "./context/AuthContext/AuthProvider";
 import LoginPage from "./pages/Login";
 import useAuthentication from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
 
 const router = createBrowserRouter([
   {
@@ -31,11 +32,14 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </QueryClientProvider>
+    <>
+      <Toaster />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    </>
   );
 }
 
