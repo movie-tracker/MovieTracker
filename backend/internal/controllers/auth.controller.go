@@ -31,12 +31,16 @@ func (c *AuthController) RegisterHandlers(params ControllerRegisterParams) {
 }
 
 func (c *AuthController) Login(ctx *gin.Context) error {
-	username := ctx.PostForm("username")
-	password := ctx.PostForm("password")
+	var loginDTO dto.LoginRequestDTO
+	var err error
 
-	if username == "" || password == "" {
-		return utils.NewBadRequestError("error.login.missing_credentials")
+	if err = ctx.ShouldBind(&loginDTO); err != nil {
+		e := utils.NewValidationError("error.auth.invalid_request", err)
+		return e
 	}
+
+	username := loginDTO.Username
+	password := loginDTO.Password
 
 	token, err := c.authService.Login(username, password)
 	if err != nil {
