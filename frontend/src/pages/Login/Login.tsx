@@ -45,7 +45,9 @@ function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
       <Card className="w-full max-w-md p-6 shadow-lg">
-        <h1 className="text-2xl font-semibold text-center mb-6">Login</h1>
+        <h1 className="text-2xl font-semibold text-center mb-6">
+          {t("login.title")}
+        </h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -53,9 +55,12 @@ function LoginPage() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t("login.username")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
+                    <Input
+                      placeholder={t("login.usernamePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -66,11 +71,11 @@ function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("login.password")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder={t("login.passwordPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -79,16 +84,16 @@ function LoginPage() {
               )}
             />
             <Button type="submit" className="w-full">
-              Login
+              {t("login.submit")}
             </Button>
           </form>
         </Form>
         <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
           <Link to="/forgot-password" className="hover:underline">
-            Forgot your password?
+            {t("login.forgotPassword")}
           </Link>
           <Link to="/register" className="hover:underline">
-            Create an account
+            {t("login.createAccount")}
           </Link>
         </div>
       </Card>

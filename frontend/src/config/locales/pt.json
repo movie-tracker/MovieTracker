@@ -1,5 +1,15 @@
 {
   "validation": {
     "required": "Este campo é obrigatório"
+  },
+  "login": {
+    "title": "Login",
+    "username": "Usuário",
+    "usernamePlaceholder": "Digite seu usuário",
+    "password": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "submit": "Entrar",
+    "forgotPassword": "Esqueceu sua senha?",
+    "createAccount": "Criar uma conta"
   }
 }
