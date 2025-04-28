@@ -16,10 +16,8 @@ run:
 	@air || echo "air is not installed"
 
 .PHONY: build
-build: always $(OUTPUT_FILE)
-
-$(OUTPUT_FILE):
-	go build $(GO_FLAGS) -o $@ $(GO_ENTRYPOINT)
+build: always
+	go build $(GO_FLAGS) -o $(OUTPUT_FILE) $(GO_ENTRYPOINT)
 
 .PHONY: clean
 clean:
