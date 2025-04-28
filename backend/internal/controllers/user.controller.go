@@ -28,6 +28,7 @@ func (c *UserController) RegisterHandlers(params ControllerRegisterParams) {
 	router := params.Authenticated.Group("/users")
 
 	router.GET("", utils.MakeHandler(c.FindAll))                     // GET /users
+	router.GET("/profile", utils.MakeHandler(c.GetProfile))          // GET /users/profile
 	router.GET("/by-email/:email", utils.MakeHandler(c.FindByEmail)) // GET /users/by-email/:email
 	router.POST("", utils.MakeHandler(c.Create))                     // POST /users
 }
@@ -69,5 +70,15 @@ func (c *UserController) Create(ctx *gin.Context) error {
 
 	ctx.IndentedJSON(http.StatusCreated, createdUserDTO)
 
+	return nil
+}
+
+func (c UserController) GetProfile(ctx *gin.Context) error {
+	requester, ok := getRequester(ctx)
+	if !ok {
+		return utils.NewUnauthorizedError("error.user.missing_authentication")
+	}
+
+	ctx.IndentedJSON(http.StatusOK, requester)
 	return nil
 }
