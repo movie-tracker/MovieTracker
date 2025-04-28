@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import useAuthentication from "@/context/AuthContext";
-import { IApiError } from "@/utils/errors";
+import { isApiError } from "@/utils/errors";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -27,8 +27,17 @@ function LoginPage() {
 
   const onSubmit = async (values: LoginFormData) => {
     await auth.login(values.username, values.password).catch((error) => {
-      toast.error(error.message);
-      form.setError("username", { message: error.message });
+      if (isApiError(error)) {
+        if (error.fields) {
+          Object.entries(error.fields).forEach(([key, value]) => {
+            form.setError(key as keyof LoginFormData, {
+              message: t(`validation.${value}`),
+            });
+          });
+        }
+      } else {
+        toast.error(error.message);
+      }
     });
   };
 
