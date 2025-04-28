@@ -1,13 +1,15 @@
 import ApiConfig from "@/config";
-import axios from "axios";
+import { IApiError } from "@/utils/errors";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 export const httpClient = axios.create({
   baseURL: ApiConfig.apiUrl,
 });
 
 const apiClient = httpClient.create();
-apiClient.interceptors.request.use((config) => {
-  const newConfig = {
+
+function setAuthToken(config: InternalAxiosRequestConfig) {
+  const newConfig: InternalAxiosRequestConfig = {
     ...config,
   };
 
@@ -17,6 +19,29 @@ apiClient.interceptors.request.use((config) => {
   }
 
   return newConfig;
-});
+}
+
+function handleApiError(error: unknown) {
+  if (!axios.isAxiosError(error)) {
+    throw error;
+  }
+
+  const axiosError = error as AxiosError;
+  if (axiosError.code === "ERR_NETWORK" || !axiosError.response?.data) {
+    throw axiosError;
+  }
+
+  const body = axiosError.response.data as { error?: IApiError };
+  if (!body.error) {
+    throw axiosError;
+  }
+
+  const apiError = body.error;
+
+  throw apiError;
+}
+
+httpClient.interceptors.response.use(undefined, handleApiError);
+apiClient.interceptors.request.use(setAuthToken);
 
 export default apiClient;
