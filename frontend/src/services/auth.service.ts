@@ -1,7 +1,7 @@
-import api from "./api";
+import { httpClient } from "./api";
 
 export async function login(username: string, password: string) {
-  const response = await api.post<{ authToken: string }>("/auth/login", {
+  const response = await httpClient.post<{ authToken: string }>("/auth/login", {
     username,
     password,
   });
