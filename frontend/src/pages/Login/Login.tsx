@@ -14,6 +14,7 @@ import { isApiError } from "@/utils/errors";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 type LoginFormData = {
   username: string;
@@ -42,43 +43,56 @@ function LoginPage() {
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 justify-items-center my-8">
-        <Card className="max-w-sm p-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Submit</Button>
-            </form>
-          </Form>
-        </Card>
-      </div>
-    </>
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-md p-6 shadow-lg">
+        <h1 className="text-2xl font-semibold text-center mb-6">Login</h1>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your username" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </form>
+        </Form>
+        <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <Link to="/forgot-password" className="hover:underline">
+            Forgot your password?
+          </Link>
+          <Link to="/register" className="hover:underline">
+            Create an account
+          </Link>
+        </div>
+      </Card>
+    </div>
   );
 }
 
