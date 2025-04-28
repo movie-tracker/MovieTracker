@@ -37,6 +37,9 @@ type ApiConfig struct {
 	AuthSecret   string
 	AuthTokenTTL int
 
+	// CORS
+	AllowOrigin string
+
 	Database DatabaseConfig
 }
 
@@ -59,5 +62,7 @@ func NewApiConfig() ApiConfig {
 
 		AuthSecret:   panicOnEmpty("AUTH_SECRET"),
 		AuthTokenTTL: envOrDefaultInt("AUTH_TOKEN_TTL", 60*24), // 24 hours
+
+		AllowOrigin: envOrDefault("CORS_ALLOW_ORIGINS", "*"),
 	}
 }

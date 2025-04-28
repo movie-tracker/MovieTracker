@@ -28,6 +28,7 @@ func main() {
 	_controllers := controllers.NewControllers(cfg, _services)
 
 	server := gin.Default()
+	server.Use(middlewares.CORSMiddleware(cfg))
 
 	public := server.Group("/api")
 	authenticated := server.Group("/api")
