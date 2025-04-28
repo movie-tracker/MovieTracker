@@ -1,6 +1,7 @@
 import {
   createBrowserRouter,
   Navigate,
+  Outlet,
   RouterProvider,
 } from "react-router-dom";
 import "./App.css";
@@ -9,13 +10,20 @@ import LoginPage from "./pages/Login";
 import useAuthentication from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import ThemeProvider from "@/components/theme-provider";
+import Header from "@/components/header/Header";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Index />,
+    element: <App />,
+    children: [
+      {
+        path: "/",
+        element: <Index />,
+      },
+      LoginPage,
+    ],
   },
-  LoginPage,
 ]);
 
 function Index() {
@@ -33,14 +41,21 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <>
-      <Toaster />
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </QueryClientProvider>
+      <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <Toaster />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Header />
+            <Outlet />
+          </AuthProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </>
   );
 }
 
-export default App;
+function MainApp() {
+  return <RouterProvider router={router} />;
+}
+
+export default MainApp;
