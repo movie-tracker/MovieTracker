@@ -37,6 +37,7 @@ function handleApiError(error: unknown) {
   }
 
   const apiError = body.error;
+  apiError.name = "API_ERROR";
 
   throw apiError;
 }
