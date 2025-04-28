@@ -27,6 +27,7 @@ func main() {
 	_services := services.NewServices(cfg, _connections, _repositories)
 	_controllers := controllers.NewControllers(cfg, _services)
 
+	utils.RegisterValidations()
 	server := gin.Default()
 	server.Use(middlewares.CORSMiddleware(cfg))
 

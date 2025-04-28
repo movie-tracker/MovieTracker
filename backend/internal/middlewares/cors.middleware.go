@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/movie-tracker/MovieTracker/internal/config"
 )
@@ -10,9 +8,6 @@ import (
 func CORSMiddleware(cfg config.ApiConfig) gin.HandlerFunc {
 	allowOrigin := cfg.AllowOrigin
 	return func(c *gin.Context) {
-
-		fmt.Printf("CORS: %s\n", allowOrigin)
-
 		c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")

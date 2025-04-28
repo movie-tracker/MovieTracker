@@ -1,7 +1,11 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
 )
 
 func PanicOnError(err error) {
@@ -61,5 +65,36 @@ func NewUnauthorizedError(message string) *ApiError {
 	return &ApiError{
 		Message: FallbackZero(message, "error.unauthorized"),
 		Code:    http.StatusUnauthorized,
+	}
+}
+
+type ValidationError struct {
+	*ApiError
+	Fields map[string]string `json:"fields"`
+}
+
+func (e *ValidationError) BuildError() (int, any) {
+	return e.ApiError.Code, e
+}
+
+func NewValidationError(message string, err error) *ValidationError {
+	var fields = map[string]string{}
+	var verr validator.ValidationErrors
+
+	if errors.As(err, &verr) {
+		for _, f := range verr {
+			fmt.Println(f.Field(), f.Tag())
+			fields[f.Field()] = f.Tag()
+		}
+	} else {
+		fmt.Println("Not a validation error")
+	}
+
+	return &ValidationError{
+		ApiError: &ApiError{
+			Message: FallbackZero(message, "error.validation"),
+			Code:    http.StatusBadRequest,
+		},
+		Fields: fields,
 	}
 }
