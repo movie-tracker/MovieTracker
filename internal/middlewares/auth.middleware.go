@@ -16,12 +16,12 @@ func JwtAuthMiddleware(authService services.IAuthService) gin.HandlerFunc {
 			return utils.NewUnauthorizedError("error.auth.missing_token")
 		}
 
-		username, err := authService.ValidateToken(token)
+		user, err := authService.ValidateToken(token)
 		if err != nil {
 			return err
 		}
 
-		ctx.Set("username", username)
+		ctx.Set("requester", user)
 		ctx.Next()
 
 		return nil
