@@ -13,7 +13,7 @@ type IAuthService interface {
 	IService
 	Login(username string, password string) (string, error)
 	Register(userCreateDTO dto.UserCreateDTO) (dto.UserDTO, error)
-	ValidateToken(authToken string) (string, error)
+	ValidateToken(authToken string) (dto.UserDTO, error)
 }
 
 type AuthService struct {
@@ -71,7 +71,7 @@ func (s *AuthService) Register(userCreateDTO dto.UserCreateDTO) (dto.UserDTO, er
 	return user, nil
 }
 
-func (s *AuthService) ValidateToken(authToken string) (string, error) {
+func (s *AuthService) ValidateToken(authToken string) (dto.UserDTO, error) {
 	var claims Claims
 
 	token, err := jwt.ParseWithClaims(authToken, &claims, func(token *jwt.Token) (interface{}, error) {
@@ -82,8 +82,14 @@ func (s *AuthService) ValidateToken(authToken string) (string, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return "", utils.NewUnauthorizedError("error.token.invalid_or_expired")
+		return dto.UserDTO{}, utils.NewUnauthorizedError("error.token.invalid_or_expired")
 	}
 
-	return claims.Username, nil
+	username := claims.Username
+	user, err := s.userService.FindByUsername(username)
+	if err != nil {
+		return dto.UserDTO{}, utils.NewUnauthorizedError("error.token.user_not_found")
+	}
+
+	return user, nil
 }
