@@ -14,7 +14,7 @@ import { isApiError } from "@/utils/errors";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -57,6 +57,10 @@ function LoginPage() {
   };
 
   const isLoading = form.formState.isSubmitting;
+
+  if (auth.isAuthenticated) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
