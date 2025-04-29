@@ -1,41 +1,11 @@
-include .env
+include backend/.env
 
-DOCKER_ENV_FILE=.env
+DOCKER_ENV_FILE=backend/.env
 DOCKER_COMPOSE_FILE=./.docker/docker-compose.yml
 DOCKER_PROJECT_NAME=movie-tracker
 DC=docker compose -f $(DOCKER_COMPOSE_FILE) --env-file $(DOCKER_ENV_FILE) -p $(DOCKER_PROJECT_NAME)
 
-JET_PATH=./internal/database
-JET_CONSTR=postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
-JET=jet -dsn=$(JET_CONSTR) -schema=public -path=$(JET_PATH)
-
-
-OUTPUT_DIR=./bin
-OUTPUT_FILE=$(OUTPUT_DIR)/movie-tracker-api
-
-GO_ENTRYPOINT=main.go
-GO_FLAGS=
-
-.PHONY: run
-run:
-	@air || echo "air is not installed"
-
-.PHONY: build
-build: always $(OUTPUT_FILE)
-
-$(OUTPUT_FILE):
-	go build $(GO_FLAGS) -o $@ $(GO_ENTRYPOINT)
-
-.PHONY: clean
-clean:
-	rm -rf $(OUTPUT_DIR)
-
-.PHONY: always
-always:
-	mkdir -p $(OUTPUT_DIR)
-
-
-# docker
+# Docker
 .PHONY: compose_up
 compose_up:
 	$(DC) up -d --force-recreate
@@ -49,12 +19,3 @@ compose_build:
 .PHONY: compose_down
 compose_down:
 	$(DC) down
-
-
-.PHONY: update_database
-update_database:
-	$(JET)
-
-
-.PHONY: remake_database
-remake_database:

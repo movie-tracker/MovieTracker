@@ -21,6 +21,9 @@
 go.work
 go.work.sum
 
+# vscode
+.vscode
+
 # env file
 .env
 tmp
