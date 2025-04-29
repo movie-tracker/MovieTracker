@@ -1,18 +1,18 @@
-import UserDTO from "@/services/dto/user.dto";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import useLocalStorage from "../../hooks/useLocalStorage";
-import { getProfile } from "../../services/user.service";
-import { login as loginRequest } from "../../services/auth.service";
-import AuthContext, { IAuthContext } from "./auth.context";
+import UserDTO from '@/services/dto/user.dto';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import useLocalStorage from '../../hooks/useLocalStorage';
+import { getProfile } from '../../services/user.service';
+import { login as loginRequest } from '../../services/auth.service';
+import AuthContext, { IAuthContext } from './auth.context';
 
 function AuthProvider({ children }: { children?: React.ReactNode }) {
-  const [authToken, setAuthToken] = useLocalStorage("authToken");
+  const [authToken, setAuthToken] = useLocalStorage('authToken');
   const isAuthenticated = Boolean(authToken);
 
   const queryClient = useQueryClient();
 
   const profileQuery = useQuery<UserDTO, Error>({
-    queryKey: ["profile"],
+    queryKey: ['profile'],
     queryFn: async () => getProfile(),
     enabled: isAuthenticated,
   });
@@ -24,7 +24,7 @@ function AuthProvider({ children }: { children?: React.ReactNode }) {
 
   async function logout() {
     setAuthToken(null);
-    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
   }
 
   const context: IAuthContext = {
@@ -35,9 +35,7 @@ function AuthProvider({ children }: { children?: React.ReactNode }) {
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={context}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={context}>{children}</AuthContext.Provider>;
 }
 
 export default AuthProvider;
