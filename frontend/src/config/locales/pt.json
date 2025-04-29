@@ -12,5 +12,8 @@
     "forgotPassword": "Esqueceu sua senha?",
     "createAccount": "Criar uma conta",
     "loading": "Carregando..."
+  },
+  "api": {
+    "error.login.invalid_credentials": "Nome de usuário ou senha está incorreto"
   }
 }

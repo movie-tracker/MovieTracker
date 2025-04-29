@@ -45,6 +45,10 @@ function LoginPage() {
               message: t(`validation.${value}`),
             });
           });
+        } else {
+          form.setError("root", {
+            message: t(`api.${error.message}`),
+          });
         }
       } else {
         toast.error(error.message);
@@ -95,6 +99,7 @@ function LoginPage() {
                 </FormItem>
               )}
             />
+            <FormMessage>{form.formState.errors.root?.message}</FormMessage>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
