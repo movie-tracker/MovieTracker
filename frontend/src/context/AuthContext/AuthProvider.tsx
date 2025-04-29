@@ -1,8 +1,10 @@
-import UserDTO from '@/services/dto/user.dto';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import useLocalStorage from '../../hooks/useLocalStorage';
-import { getProfile } from '../../services/user.service';
-import { login as loginRequest } from '../../services/auth.service';
+
+import useLocalStorage from '@/hooks/useLocalStorage';
+import { login as loginRequest } from '@/services/auth.service';
+import UserDTO from '@/services/dto/user.dto';
+import { getProfile } from '@/services/user.service';
+
 import AuthContext, { IAuthContext } from './auth.context';
 
 function AuthProvider({ children }: { children?: React.ReactNode }) {

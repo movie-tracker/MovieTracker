@@ -1,6 +1,7 @@
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+
 import ApiConfig from '@/config';
 import { IApiError } from '@/utils/errors';
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 export const httpClient = axios.create({
   baseURL: ApiConfig.apiUrl,
