@@ -10,6 +10,7 @@
     "passwordPlaceholder": "Enter your password",
     "submit": "Login",
     "forgotPassword": "Forgot your password?",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "loading": "Loading..."
   }
 }
