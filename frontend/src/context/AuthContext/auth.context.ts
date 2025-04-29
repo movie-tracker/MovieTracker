@@ -1,6 +1,7 @@
 import { UseQueryResult } from '@tanstack/react-query';
-import UserDTO from '@/services/dto/user.dto';
 import { createContext } from 'react';
+
+import UserDTO from '@/services/dto/user.dto';
 
 export interface IAuthContext {
   user?: UserDTO;

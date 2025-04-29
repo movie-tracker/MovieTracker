@@ -1,12 +1,14 @@
-import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
-import './App.css';
-import AuthProvider from './context/AuthContext/AuthProvider';
-import LoginPage from './pages/Login';
-import useAuthentication from './context/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
-import ThemeProvider from '@/components/theme-provider';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
+
 import Header from '@/components/header/Header';
+import ThemeProvider from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import useAuthentication from '@/context/AuthContext';
+import AuthProvider from '@/context/AuthContext/AuthProvider';
+import LoginPage from '@/pages/Login';
+
+import './App.css';
 
 const router = createBrowserRouter([
   {

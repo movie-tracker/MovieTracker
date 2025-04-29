@@ -1,5 +1,6 @@
-import useAuthentication from '@/context/AuthContext';
 import { Link } from 'react-router-dom';
+
+import useAuthentication from '@/context/AuthContext';
 
 function Header() {
   const auth = useAuthentication();
