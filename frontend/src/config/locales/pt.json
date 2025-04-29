@@ -10,6 +10,7 @@
     "passwordPlaceholder": "Digite sua senha",
     "submit": "Entrar",
     "forgotPassword": "Esqueceu sua senha?",
-    "createAccount": "Criar uma conta"
+    "createAccount": "Criar uma conta",
+    "loading": "Carregando..."
   }
 }
