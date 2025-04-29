@@ -12,5 +12,8 @@
     "forgotPassword": "Forgot your password?",
     "createAccount": "Create an account",
     "loading": "Loading..."
+  },
+  "api": {
+    "error.login.invalid_credentials": "Username or password is incorrect"
   }
 }
