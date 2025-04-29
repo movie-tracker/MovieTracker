@@ -1,6 +1,6 @@
-import ApiConfig from "@/config";
-import { IApiError } from "@/utils/errors";
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import ApiConfig from '@/config';
+import { IApiError } from '@/utils/errors';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 export const httpClient = axios.create({
   baseURL: ApiConfig.apiUrl,
@@ -13,7 +13,7 @@ function setAuthToken(config: InternalAxiosRequestConfig) {
     ...config,
   };
 
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem('authToken');
   if (token) {
     newConfig.headers.Authorization = `Bearer ${token}`;
   }
@@ -27,7 +27,7 @@ function handleApiError(error: unknown) {
   }
 
   const axiosError = error as AxiosError;
-  if (axiosError.code === "ERR_NETWORK" || !axiosError.response?.data) {
+  if (axiosError.code === 'ERR_NETWORK' || !axiosError.response?.data) {
     throw axiosError;
   }
 
@@ -37,7 +37,7 @@ function handleApiError(error: unknown) {
   }
 
   const apiError = body.error;
-  apiError.name = "API_ERROR";
+  apiError.name = 'API_ERROR';
 
   throw apiError;
 }

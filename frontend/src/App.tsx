@@ -1,24 +1,19 @@
-import {
-  createBrowserRouter,
-  Navigate,
-  Outlet,
-  RouterProvider,
-} from "react-router-dom";
-import "./App.css";
-import AuthProvider from "./context/AuthContext/AuthProvider";
-import LoginPage from "./pages/Login";
-import useAuthentication from "./context/AuthContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
-import ThemeProvider from "@/components/theme-provider";
-import Header from "@/components/header/Header";
+import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
+import './App.css';
+import AuthProvider from './context/AuthContext/AuthProvider';
+import LoginPage from './pages/Login';
+import useAuthentication from './context/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import ThemeProvider from '@/components/theme-provider';
+import Header from '@/components/header/Header';
 
 const router = createBrowserRouter([
   {
     element: <App />,
     children: [
       {
-        path: "/",
+        path: '/',
         element: <Index />,
       },
       LoginPage,
