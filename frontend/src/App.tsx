@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
 
@@ -7,9 +6,8 @@ import ThemeProvider from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import useAuthentication from '@/context/AuthContext';
 import AuthProvider from '@/context/AuthContext/AuthProvider';
-import LoginPage from '@/pages/Login';
-
 import DashboardPage from '@/pages/Dashboard';
+import LoginPage from '@/pages/Login';
 
 import './App.css';
 

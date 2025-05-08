@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import {
   Bars3Icon,
   HomeIcon,
