@@ -6,6 +6,7 @@ import ThemeProvider from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import useAuthentication from '@/context/AuthContext';
 import AuthProvider from '@/context/AuthContext/AuthProvider';
+import DashboardPage from '@/pages/Dashboard';
 import LoginPage from '@/pages/Login';
 
 import './App.css';
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
         path: '/',
         element: <Index />,
       },
+      DashboardPage,
       LoginPage,
     ],
   },
@@ -30,7 +32,7 @@ function Index() {
     return <Navigate to="/login" />;
   }
 
-  return <h1>Index Page</h1>;
+  return <Navigate to="/dashboard" />;
 }
 
 const queryClient = new QueryClient();
