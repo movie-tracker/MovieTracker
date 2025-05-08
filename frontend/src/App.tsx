@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
 
@@ -7,6 +8,8 @@ import { Toaster } from '@/components/ui/sonner';
 import useAuthentication from '@/context/AuthContext';
 import AuthProvider from '@/context/AuthContext/AuthProvider';
 import LoginPage from '@/pages/Login';
+
+import DashboardPage from '@/pages/Dashboard';
 
 import './App.css';
 
@@ -18,6 +21,7 @@ const router = createBrowserRouter([
         path: '/',
         element: <Index />,
       },
+      DashboardPage,
       LoginPage,
     ],
   },
@@ -30,7 +34,7 @@ function Index() {
     return <Navigate to="/login" />;
   }
 
-  return <h1>Index Page</h1>;
+  return <Navigate to="/dashboard" />;
 }
 
 const queryClient = new QueryClient();
