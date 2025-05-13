@@ -29,6 +29,10 @@ type DatabaseConfig struct {
 	Password string
 }
 
+type TMDBConfig struct {
+	ApiKey string
+}
+
 type ApiConfig struct {
 	Host string
 	Port int
@@ -41,6 +45,7 @@ type ApiConfig struct {
 	AllowOrigin string
 
 	Database DatabaseConfig
+	TMDB     TMDBConfig
 }
 
 func NewApiConfig() ApiConfig {
@@ -64,5 +69,9 @@ func NewApiConfig() ApiConfig {
 		AuthTokenTTL: envOrDefaultInt("AUTH_TOKEN_TTL", 60*24), // 24 hours
 
 		AllowOrigin: envOrDefault("CORS_ALLOW_ORIGINS", "*"),
+
+		TMDB: TMDBConfig{
+			ApiKey: panicOnEmpty("TMDB_API_KEY"),
+		},
 	}
 }

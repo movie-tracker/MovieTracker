@@ -11,8 +11,9 @@ type IService interface {
 }
 
 type Services struct {
-	AuthService IAuthService
-	UserService IUserService
+	AuthService  IAuthService
+	UserService  IUserService
+	MovieService IMovieService
 }
 
 type ServicesParams struct {
@@ -29,12 +30,14 @@ func NewServices(cfg config.ApiConfig, conns connections.Connections, repos repo
 	}
 
 	var svcs = Services{
-		AuthService: newAuthService(params),
-		UserService: newUserService(params),
+		AuthService:  newAuthService(params),
+		UserService:  newUserService(params),
+		MovieService: newMovieService(params),
 	}
 
 	svcs.AuthService.ProvideServices(svcs)
 	svcs.UserService.ProvideServices(svcs)
+	svcs.MovieService.ProvideServices(svcs)
 
 	return svcs
 }
