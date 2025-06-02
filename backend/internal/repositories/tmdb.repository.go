@@ -12,8 +12,8 @@ import (
 )
 
 type IMovieRepository interface {
-	GetByID(id int) (dto.MovieDTO, error)
-	DiscoverMovies() (dto.Pagination[dto.MovieDTO], error)
+	DiscoverMovies() (dto.Pagination[dto.TMDBMovieDTO], error)
+	GetByID(id int) (dto.TMDBMovieDTO, error)
 }
 
 type TMDBRepository struct {
@@ -56,9 +56,9 @@ func (r *TMDBRepository) login() error {
 	return nil
 }
 
-func (r *TMDBRepository) DiscoverMovies() (dto.Pagination[dto.MovieDTO], error) {
+func (r *TMDBRepository) DiscoverMovies() (dto.Pagination[dto.TMDBMovieDTO], error) {
 	var err error
-	var movies dto.Pagination[dto.MovieDTO]
+	var movies dto.Pagination[dto.TMDBMovieDTO]
 	endpoint, err := r.getEndpoint("/discover/movie")
 	if err != nil {
 		return movies, err
@@ -78,26 +78,26 @@ func (r *TMDBRepository) DiscoverMovies() (dto.Pagination[dto.MovieDTO], error) 
 	return movies, nil
 }
 
-func (r *TMDBRepository) GetByID(id int) (dto.MovieDTO, error) {
+func (r *TMDBRepository) GetByID(id int) (dto.TMDBMovieDTO, error) {
+	var movie dto.TMDBMovieDTO
 	endpoint, err := r.getEndpoint("/movie/%d", id)
 	if err != nil {
-		return dto.MovieDTO{}, err
+		return movie, err
 	}
 
 	response, err := r.fetch("GET", endpoint, nil)
 
 	if err != nil {
-		return dto.MovieDTO{}, err
+		return movie, err
 	}
 
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return dto.MovieDTO{}, fmt.Errorf("failed to fetch movie data: %s", response.Status)
+		return movie, fmt.Errorf("failed to fetch movie data: %s", response.Status)
 	}
 
-	var movie dto.MovieDTO
 	if err := json.NewDecoder(response.Body).Decode(&movie); err != nil {
-		return dto.MovieDTO{}, fmt.Errorf("failed to decode movie data: %w", err)
+		return movie, fmt.Errorf("failed to decode movie data: %w", err)
 	}
 
 	return movie, nil
