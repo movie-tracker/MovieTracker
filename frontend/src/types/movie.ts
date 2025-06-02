@@ -2,7 +2,7 @@ export interface Movie {
   id: number;
   title: string;
   year: number;
-  posterUrl: string;
+  poster_path: string;
   userRating: number;
   imdbRating: number;
   watched: boolean;
