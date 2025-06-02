@@ -8,6 +8,7 @@ import (
 type IMovieService interface {
 	IService
 	GetByID(id int) (dto.MovieDTO, error)
+	DiscoverMovies() (dto.Pagination[dto.MovieDTO], error)
 }
 
 type MovieService struct {
@@ -18,6 +19,10 @@ func newMovieService(params ServicesParams) IMovieService {
 	return &MovieService{
 		movieRepo: params.Repos.MovieRepo,
 	}
+}
+
+func (s *MovieService) DiscoverMovies() (dto.Pagination[dto.MovieDTO], error) {
+	return s.movieRepo.DiscoverMovies()
 }
 
 func (s *MovieService) GetByID(id int) (dto.MovieDTO, error) {
