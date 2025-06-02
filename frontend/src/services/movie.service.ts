@@ -1,11 +1,11 @@
-import type { Movie, Stats } from '@/types/movie';
+import apiClient from '@/services/api';
+import { Movie, Pagination, Stats } from '@/types';
 
 const mockMovies: Movie[] = [];
 
-export const getMovies = async (): Promise<Movie[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(mockMovies), 800);
-  });
+export const discoverMovies = async (): Promise<Pagination<Movie>> => {
+  const response = await apiClient.get('/movies');
+  return response.data;
 };
 
 export const getStats = async (): Promise<Stats> => {
