@@ -8,10 +8,12 @@ import (
 	"net/url"
 
 	"github.com/movie-tracker/MovieTracker/internal/services/dto"
+	"github.com/movie-tracker/MovieTracker/internal/utils"
 )
 
 type IMovieRepository interface {
 	GetByID(id int) (dto.MovieDTO, error)
+	DiscoverMovies() (dto.Pagination[dto.MovieDTO], error)
 }
 
 type TMDBRepository struct {
@@ -52,6 +54,28 @@ func (r *TMDBRepository) login() error {
 	}
 
 	return nil
+}
+
+func (r *TMDBRepository) DiscoverMovies() (dto.Pagination[dto.MovieDTO], error) {
+	var err error
+	var movies dto.Pagination[dto.MovieDTO]
+	endpoint, err := r.getEndpoint("/discover/movie")
+	if err != nil {
+		return movies, err
+	}
+
+	response, err := r.fetch("GET", endpoint, nil)
+	if err != nil {
+		return movies, err
+	}
+	defer response.Body.Close()
+
+	err = utils.GetBodyJSON(response, &movies)
+	if err != nil {
+		return movies, fmt.Errorf("failed to decode movie data: %w", err)
+	}
+
+	return movies, nil
 }
 
 func (r *TMDBRepository) GetByID(id int) (dto.MovieDTO, error) {

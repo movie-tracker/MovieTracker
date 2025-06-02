@@ -26,7 +26,18 @@ func newMovieController(params ControllerParams) IMovieController {
 func (c *MovieController) RegisterHandlers(params ControllerRegisterParams) {
 	router := params.Public.Group("/movies")
 
+	router.GET("", utils.MakeHandler(c.DiscoverMovies))   // GET /movies
 	router.GET("/:id", utils.MakeHandler(c.GetMovieByID)) // GET /movies/:id
+}
+
+func (c *MovieController) DiscoverMovies(ctx *gin.Context) error {
+	movies, err := c.movieService.DiscoverMovies()
+	if err != nil {
+		return err
+	}
+
+	ctx.JSON(http.StatusOK, movies)
+	return nil
 }
 
 func (c *MovieController) GetMovieByID(ctx *gin.Context) error {
