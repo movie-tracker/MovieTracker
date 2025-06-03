@@ -1,0 +1,39 @@
+{
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign in",
+    "loading": "Signing in...",
+    "forgotPassword": "Forgot password?",
+    "createAccount": "Create account"
+  },
+  "favorites": {
+    "title": "Favorite Movies",
+    "empty": "No favorite movies yet",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites"
+  },
+  "watched": {
+    "title": "Watched Movies",
+    "empty": "No watched movies yet",
+    "markAsWatched": "Mark as watched",
+    "markAsUnwatched": "Mark as unwatched"
+  },
+  "movie": {
+    "releaseYear": "Release Year",
+    "rating": "Rating",
+    "remove": "Remove",
+    "viewDetails": "View Details"
+  },
+  "validation": {
+    "required": "This field is required"
+  },
+  "api": {
+    "error": {
+      "default": "An error occurred"
+    }
+  }
+} 
