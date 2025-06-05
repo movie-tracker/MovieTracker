@@ -7,69 +7,84 @@ import {
   UserCircleIcon,
   FilmIcon,
 } from '@heroicons/react/24/outline';
+import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 
+import { discoverMovies } from '@/services/movie.service';
+import { Pagination } from '@/types';
+import { Movie } from '@/types/movie';
+
 const Dashboard: React.FC = () => {
-  const moviesMock = [
-    {
-      title: 'Dune',
-      year: 2021,
-      userRating: 6.1,
-      imdbRating: 6.93,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/d5NXSklXo0qyIYkgV94XAgMIckC.jpg',
-    },
-    {
-      title: 'The Matrix',
-      year: 1999,
-      userRating: 6.5,
-      imdbRating: 8.57,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg',
-    },
-    {
-      title: 'Interstellar',
-      year: 2014,
-      userRating: 6.1,
-      imdbRating: 6.98,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-    },
-    {
-      title: 'The Dark Knight',
-      year: 2008,
-      userRating: 6.5,
-      imdbRating: 7.75,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
-    },
-    {
-      title: 'Pulp Fiction',
-      year: 1994,
-      userRating: 6.1,
-      imdbRating: 8.79,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg',
-    },
-    {
-      title: 'Fight Club',
-      year: 1999,
-      userRating: 6.5,
-      imdbRating: 7.75,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
-    },
-    {
-      title: 'Forrest Gump',
-      year: 1994,
-      userRating: 8.1,
-      imdbRating: 8.95,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg',
-    },
-    {
-      title: 'The Social Network',
-      year: 2010,
-      userRating: 7.5,
-      imdbRating: 9.0,
-      poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg',
-    },
-  ];
+  // {
+  //   title: 'Dune',
+  //   year: 2021,
+  //   userRating: 6.1,
+  //   imdbRating: 6.93,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/d5NXSklXo0qyIYkgV94XAgMIckC.jpg',
+  // },
+  // {
+  //   title: 'The Matrix',
+  //   year: 1999,
+  //   userRating: 6.5,
+  //   imdbRating: 8.57,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg',
+  // },
+  // {
+  //   title: 'Interstellar',
+  //   year: 2014,
+  //   userRating: 6.1,
+  //   imdbRating: 6.98,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+  // },
+  // {
+  //   title: 'The Dark Knight',
+  //   year: 2008,
+  //   userRating: 6.5,
+  //   imdbRating: 7.75,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+  // },
+  // {
+  //   title: 'Pulp Fiction',
+  //   year: 1994,
+  //   userRating: 6.1,
+  //   imdbRating: 8.79,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg',
+  // },
+  // {
+  //   title: 'Fight Club',
+  //   year: 1999,
+  //   userRating: 6.5,
+  //   imdbRating: 7.75,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
+  // },
+  // {
+  //   title: 'Forrest Gump',
+  //   year: 1994,
+  //   userRating: 8.1,
+  //   imdbRating: 8.95,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg',
+  // },
+  // {
+  //   title: 'The Social Network',
+  //   year: 2010,
+  //   userRating: 7.5,
+  //   imdbRating: 9.0,
+  //   poster: 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg',
+  // },
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const movieQuery = useQuery<Pagination<Movie>>({
+    queryKey: ['movies'],
+    queryFn: discoverMovies,
+    placeholderData: {
+      results: [],
+      page: 1,
+      total_pages: 0,
+      total_results: 0,
+    },
+  });
+
+  const movieList = movieQuery.data?.results || [];
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -153,9 +168,13 @@ const Dashboard: React.FC = () => {
 
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Movie List</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {moviesMock.map((movie) => (
+          {movieList.map((movie) => (
             <div key={movie.title} className="bg-white rounded-lg shadow overflow-hidden">
-              <img src={movie.poster} alt={movie.title} className="w-full h-auto object-cover" />
+              <img
+                src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full h-auto object-cover"
+              />
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">
                   {movie.title} <span className="font-normal text-gray-500">({movie.year})</span>

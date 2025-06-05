@@ -13,7 +13,8 @@ type RepositoryParams struct {
 }
 
 type Repositories struct {
-	UserRepo IUserRepository
+	UserRepo  IUserRepository
+	MovieRepo IMovieRepository
 }
 
 var gRepositories Repositories
@@ -27,6 +28,7 @@ func InitRepositories(cfg config.ApiConfig, conns connections.Connections) Repos
 	}
 
 	gRepositories.UserRepo = newUserRepository(params)
+	gRepositories.MovieRepo = newTMDBRepository(params)
 
 	return gRepositories
 }

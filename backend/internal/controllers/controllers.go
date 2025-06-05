@@ -11,8 +11,9 @@ type IController interface {
 }
 
 type Controllers struct {
-	AuthController IAuthController
-	UserController IUserController
+	AuthController  IAuthController
+	UserController  IUserController
+	MovieController IMovieController
 }
 
 type ControllerParams struct {
@@ -31,14 +32,16 @@ func NewControllers(cfg config.ApiConfig, services services.Services) Controller
 		Svcs: services,
 	}
 	return Controllers{
-		AuthController: newAuthController(params),
-		UserController: newUserController(params),
+		AuthController:  newAuthController(params),
+		UserController:  newUserController(params),
+		MovieController: newMovieController(params),
 	}
 }
 
 func (c *Controllers) RegisterHandlers(params ControllerRegisterParams) {
 	c.AuthController.RegisterHandlers(params)
 	c.UserController.RegisterHandlers(params)
+	c.MovieController.RegisterHandlers(params)
 }
 
 func path(prefix string, path string) string {
