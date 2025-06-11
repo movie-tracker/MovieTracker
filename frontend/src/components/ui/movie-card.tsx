@@ -32,13 +32,13 @@ export function MovieCard({
   onRemove,
 }: MovieCardProps) {
   return (
-    <Card className="bg-slate-800 rounded-lg shadow overflow-hidden flex flex-col">
+    <Card className="bg-slate-800 rounded-lg shadow overflow-hidden flex flex-col min-h-[500px]">
       <CardHeader className="relative p-0">
         <Link to={`/movie/${id}`}>
           <img
             src={posterUrl}
             alt={title}
-            className="w-full h-auto object-cover rounded-t-lg hover:opacity-80 transition-opacity"
+            className="w-full h-[400px] object-cover rounded-t-lg hover:opacity-80 transition-opacity"
           />
         </Link>
       </CardHeader>
