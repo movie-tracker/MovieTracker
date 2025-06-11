@@ -51,19 +51,6 @@ export default function WatchedPage() {
       userComment: 'Um dos melhores filmes de ficção científica!',
     },
     {
-      id: '3',
-      title: 'Interstellar',
-      posterUrl: 'https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg',
-      releaseYear: '2014',
-      rating: 8.6,
-      overview:
-        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-      isWatched: true,
-      isFavorite: false,
-      userRating: 4,
-      userComment: 'Visual incrível e história emocionante.',
-    },
-    {
       id: '4',
       title: 'The Godfather',
       posterUrl: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
@@ -164,22 +151,22 @@ export default function WatchedPage() {
           <p className="text-xl text-gray-500">{t('watched.empty', 'No watched movies yet')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 max-w-7xl mx-auto justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {watchedMovies.map((movie) => (
             <div
               key={movie.id}
-              className="w-80 bg-slate-800 rounded-lg shadow-lg flex flex-col items-center mx-auto"
+              className="bg-slate-800 rounded-lg shadow overflow-hidden flex flex-col"
             >
               <img
                 src={movie.posterUrl}
                 alt={movie.title}
-                className="w-full h-80 object-cover rounded-t-lg"
+                className="w-full h-auto object-cover"
               />
-              <div className="flex-1 flex flex-col items-center p-5 w-full">
-                <h2 className="text-xl font-bold text-center mb-1 text-white truncate w-full">{movie.title}</h2>
-                <div className="text-gray-400 text-sm mb-1">{movie.releaseYear}</div>
-                <div className="text-yellow-400 font-semibold mb-2">⭐ {movie.rating}</div>
-                <p className="text-gray-300 text-sm text-center mb-4 line-clamp-3">{movie.overview}</p>
+              <div className="p-4 flex-1 flex flex-col">
+                <h2 className="text-2xl font-bold text-center mb-1 text-white break-words whitespace-normal">{movie.title}</h2>
+                <div className="text-white text-sm mb-1 text-center whitespace-normal">{movie.releaseYear}</div>
+                <div className="text-yellow-500 font-semibold mb-2 text-center">⭐ {movie.rating}</div>
+                <p className="text-white text-sm text-center mb-4 line-clamp-3 whitespace-pre-wrap break-words">{movie.overview}</p>
                 <MovieOptions
                   movieId={movie.id}
                   isWatched={movie.isWatched || false}

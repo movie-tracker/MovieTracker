@@ -36,12 +36,12 @@ export function MovieOptions({
 
   return (
     <div className="space-y-4 p-4 bg-slate-800 rounded-lg">
-      <div className="flex w-full justify-center gap-2 mb-4">
+      <div className="flex w-full justify-center gap-5 mb-10">
         <Button
           variant={isWatched ? "default" : "outline"}
           size="sm"
           onClick={onToggleWatched}
-          className="flex items-center gap-2 cursor-pointer w-[140px] justify-center"
+          className="flex items-center gap-2 cursor-pointer w-[170px] justify-center"
         >
           <span className="inline-flex items-center justify-center bg-gray-200 rounded-full p-1 mr-1"><Eye className="w-4 h-4 text-black" /></span>
           {isWatched ? t('movie.watched', 'Watched') : t('movie.markAsWatched', 'Mark as Watched')}
@@ -50,7 +50,7 @@ export function MovieOptions({
           variant={isFavorite ? "default" : "outline"}
           size="sm"
           onClick={onToggleFavorite}
-          className="flex items-center gap-2 cursor-pointer w-[140px] justify-center"
+          className="flex items-center gap-2 cursor-pointer w-[170px] justify-center"
         >
           <span className="inline-flex items-center justify-center bg-gray-200 rounded-full p-1 mr-1"><Heart className="w-4 h-4 text-black" /></span>
           {isFavorite ? t('movie.favorite', 'Favorite') : t('movie.addToFavorites', 'Add to Favorites')}
@@ -60,7 +60,7 @@ export function MovieOptions({
       <div className="h-[160px] space-y-4 flex flex-col">
         <div className="flex items-center gap-2 opacity-100 transition-opacity duration-200" 
              style={{ opacity: isWatched ? 1 : 0.3, pointerEvents: isWatched ? 'auto' : 'none' }}>
-          <span className="text-sm font-medium">{t('movie.yourRating', 'Your Rating')}:</span>
+          <span className="text-bg font-medium">{t('movie.yourRating', 'Your Rating')}:</span>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -102,7 +102,7 @@ export function MovieOptions({
           {comment && (
             <div className="bg-blue-100 rounded-lg px-3 py-2 flex gap-2 w-full opacity-100 transition-opacity duration-200"
                  style={{ opacity: isWatched ? 1 : 0.3 }}>
-              <p className="text-sm text-black break-words break-all whitespace-pre-line flex-1 hyphens-auto" style={{ hyphens: 'auto' }} lang="pt">{comment}</p>
+              <p className="text-base text-black break-words break-normal whitespace-pre-line flex-1 hyphens-auto" style={{ hyphens: 'auto' }} lang="pt">{comment}</p>
               {isWatched && (
                 <Button
                   variant="ghost"

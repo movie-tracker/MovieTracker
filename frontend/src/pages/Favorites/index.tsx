@@ -64,19 +64,25 @@ export default function FavoritesPage() {
           <p className="text-xl text-gray-500">{t('favorites.empty', 'No favorite movies yet')}</p>
         </div>
       ) : (
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
-            {favoriteMovies.map((movie) => (
-              <MovieCard
-                key={movie.id}
-                {...movie}
-                isFavorite={true}
-                onToggleFavorite={() => handleToggleFavorite(movie.id)}
-                onToggleWatched={() => handleToggleWatched(movie.id)}
-                onRemove={() => handleRemove(movie.id)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {favoriteMovies.map((movie) => (
+            <div
+              key={movie.id}
+              className="bg-slate-800 rounded-lg shadow overflow-hidden flex flex-col"
+            >
+              <img
+                src={movie.posterUrl}
+                alt={movie.title}
+                className="w-full h-auto object-cover"
               />
-            ))}
-          </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <h2 className="text-2xl font-bold text-center mb-1 text-white break-words whitespace-normal">{movie.title}</h2>
+                <div className="text-white text-sm mb-1 text-center whitespace-normal">{movie.releaseYear}</div>
+                <div className="text-yellow-500 font-semibold mb-2 text-center">⭐ {movie.rating}</div>
+                <p className="text-white text-sm text-center mb-4 line-clamp-3 whitespace-pre-wrap break-words">{movie.overview}</p>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
