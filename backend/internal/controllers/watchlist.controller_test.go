@@ -26,8 +26,8 @@ func (m *MockWatchlistService) GetByUser(userID int64) ([]dto.WatchListDTO, erro
 	return args.Get(0).([]dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) AddToWatchlist(userID int64, tmdbMovieID int, status string, favorite bool, comments string, rating *int) (dto.WatchListDTO, error) {
-	args := m.Called(userID, tmdbMovieID, status, favorite, comments, rating)
+func (m *MockWatchlistService) AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error) {
+	args := m.Called(userID, createDTO)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
@@ -107,7 +107,7 @@ func TestWatchlistController_GetUserWatchlist_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, response, 1)
 	assert.Equal(t, expectedWatchlist[0].ID, response[0].ID)
-	assert.Equal(t, expectedWatchlist[0].TMDBMovieID, response[0].TMDBMovieID)
+	assert.Equal(t, expectedWatchlist[0].MovieID, response[0].MovieID)
 
 	mockService.AssertExpectations(t)
 }
@@ -123,6 +123,14 @@ func TestWatchlistController_AddToWatchlist_Success(t *testing.T) {
 
 	// Mock data
 	rating := int32(8)
+	createDTO := dto.WatchListCreateDTO{
+		MovieID:  123,
+		Status:   "plan to watch",
+		Favorite: false,
+		Comments: "Want to watch this",
+		Rating:   &rating,
+	}
+
 	expectedItem := dto.WatchListDTO{
 		ID:       1,
 		MovieID:  123,
@@ -133,7 +141,7 @@ func TestWatchlistController_AddToWatchlist_Success(t *testing.T) {
 		Rating:   &rating,
 	}
 
-	mockService.On("AddToWatchlist", int64(1), 123, "plan to watch", false, "Want to watch this", &rating).Return(expectedItem, nil)
+	mockService.On("AddToWatchlist", int64(1), createDTO).Return(expectedItem, nil)
 
 	// Create router and register handlers
 	r := gin.Default()
@@ -149,11 +157,11 @@ func TestWatchlistController_AddToWatchlist_Success(t *testing.T) {
 
 	// Create request body
 	requestBody := map[string]interface{}{
-		"tmdb_movie_id": 123,
-		"status":        "plan to watch",
-		"favorite":      false,
-		"comments":      "Want to watch this",
-		"rating":        8,
+		"movie_id": 123,
+		"status":   "plan to watch",
+		"favorite": false,
+		"comments": "Want to watch this",
+		"rating":   8,
 	}
 
 	jsonBody, _ := json.Marshal(requestBody)
