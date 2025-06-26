@@ -8,11 +8,10 @@
 package model
 
 type Watchlist struct {
-	ID       int32 `sql:"primary_key"`
-	MovieID  *int32
-	UserID   int32
+	MovieID  int32 `sql:"primary_key"`
+	UserID   int32 `sql:"primary_key"`
 	Status   WatchStatus
 	Favorite bool
-	Comments string
+	Comments *string
 	Rating   *int32
 }

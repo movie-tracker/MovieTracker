@@ -17,7 +17,6 @@ type watchlistTable struct {
 	postgres.Table
 
 	// Columns
-	ID       postgres.ColumnInteger
 	MovieID  postgres.ColumnInteger
 	UserID   postgres.ColumnInteger
 	Status   postgres.ColumnString
@@ -64,22 +63,20 @@ func newWatchlistTable(schemaName, tableName, alias string) *WatchlistTable {
 
 func newWatchlistTableImpl(schemaName, tableName, alias string) watchlistTable {
 	var (
-		IDColumn       = postgres.IntegerColumn("id")
 		MovieIDColumn  = postgres.IntegerColumn("movie_id")
 		UserIDColumn   = postgres.IntegerColumn("user_id")
 		StatusColumn   = postgres.StringColumn("status")
 		FavoriteColumn = postgres.BoolColumn("favorite")
 		CommentsColumn = postgres.StringColumn("comments")
 		RatingColumn   = postgres.IntegerColumn("rating")
-		allColumns     = postgres.ColumnList{IDColumn, MovieIDColumn, UserIDColumn, StatusColumn, FavoriteColumn, CommentsColumn, RatingColumn}
-		mutableColumns = postgres.ColumnList{MovieIDColumn, UserIDColumn, StatusColumn, FavoriteColumn, CommentsColumn, RatingColumn}
+		allColumns     = postgres.ColumnList{MovieIDColumn, UserIDColumn, StatusColumn, FavoriteColumn, CommentsColumn, RatingColumn}
+		mutableColumns = postgres.ColumnList{StatusColumn, FavoriteColumn, CommentsColumn, RatingColumn}
 	)
 
 	return watchlistTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:       IDColumn,
 		MovieID:  MovieIDColumn,
 		UserID:   UserIDColumn,
 		Status:   StatusColumn,

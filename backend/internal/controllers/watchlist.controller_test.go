@@ -21,38 +21,38 @@ type MockWatchlistService struct {
 
 func (m *MockWatchlistService) ProvideServices(services.Services) {}
 
-func (m *MockWatchlistService) GetByUser(userID int64) ([]dto.WatchListDTO, error) {
+func (m *MockWatchlistService) GetByUser(userID int32) ([]dto.WatchListDTO, error) {
 	args := m.Called(userID)
 	return args.Get(0).([]dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error) {
+func (m *MockWatchlistService) AddToWatchlist(userID int32, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error) {
 	args := m.Called(userID, createDTO)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) UpdateWatchlistItem(userID int64, id int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error) {
-	args := m.Called(userID, id, status, favorite, comments, rating)
+func (m *MockWatchlistService) UpdateWatchlistItem(userID int32, movieID int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error) {
+	args := m.Called(userID, movieID, status, favorite, comments, rating)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) RemoveFromWatchlist(userID int64, id int) error {
-	args := m.Called(userID, id)
+func (m *MockWatchlistService) RemoveFromWatchlist(userID int32, movieID int) error {
+	args := m.Called(userID, movieID)
 	return args.Error(0)
 }
 
-func (m *MockWatchlistService) UpdateStatus(userID int64, id int, status string) (dto.WatchListDTO, error) {
-	args := m.Called(userID, id, status)
+func (m *MockWatchlistService) UpdateStatus(userID int32, movieID int, status string) (dto.WatchListDTO, error) {
+	args := m.Called(userID, movieID, status)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) ToggleFavorite(userID int64, id int, favorite bool) (dto.WatchListDTO, error) {
-	args := m.Called(userID, id, favorite)
+func (m *MockWatchlistService) ToggleFavorite(userID int32, movieID int, favorite bool) (dto.WatchListDTO, error) {
+	args := m.Called(userID, movieID, favorite)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
-func (m *MockWatchlistService) UpdateRating(userID int64, id int, rating *int) (dto.WatchListDTO, error) {
-	args := m.Called(userID, id, rating)
+func (m *MockWatchlistService) UpdateRating(userID int32, movieID int, rating *int) (dto.WatchListDTO, error) {
+	args := m.Called(userID, movieID, rating)
 	return args.Get(0).(dto.WatchListDTO), args.Error(1)
 }
 
@@ -68,17 +68,16 @@ func TestWatchlistController_GetUserWatchlist_Success(t *testing.T) {
 	// Mock data
 	expectedWatchlist := []dto.WatchListDTO{
 		{
-			ID:       1,
 			MovieID:  123,
 			UserID:   1,
 			Status:   "watched",
 			Favorite: true,
-			Comments: "Great movie!",
+			Comments: &[]string{"Great movie!"}[0],
 			Rating:   &[]int32{9}[0],
 		},
 	}
 
-	mockService.On("GetByUser", int64(1)).Return(expectedWatchlist, nil)
+	mockService.On("GetByUser", int32(1)).Return(expectedWatchlist, nil)
 
 	// Create router and register handlers
 	r := gin.Default()
@@ -106,8 +105,8 @@ func TestWatchlistController_GetUserWatchlist_Success(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Len(t, response, 1)
-	assert.Equal(t, expectedWatchlist[0].ID, response[0].ID)
 	assert.Equal(t, expectedWatchlist[0].MovieID, response[0].MovieID)
+	assert.Equal(t, expectedWatchlist[0].UserID, response[0].UserID)
 
 	mockService.AssertExpectations(t)
 }
@@ -127,21 +126,20 @@ func TestWatchlistController_AddToWatchlist_Success(t *testing.T) {
 		MovieID:  123,
 		Status:   "plan to watch",
 		Favorite: false,
-		Comments: "Want to watch this",
+		Comments: &[]string{"Want to watch this"}[0],
 		Rating:   &rating,
 	}
 
 	expectedItem := dto.WatchListDTO{
-		ID:       1,
 		MovieID:  123,
 		UserID:   1,
 		Status:   "plan to watch",
 		Favorite: false,
-		Comments: "Want to watch this",
+		Comments: &[]string{"Want to watch this"}[0],
 		Rating:   &rating,
 	}
 
-	mockService.On("AddToWatchlist", int64(1), createDTO).Return(expectedItem, nil)
+	mockService.On("AddToWatchlist", int32(1), createDTO).Return(expectedItem, nil)
 
 	// Create router and register handlers
 	r := gin.Default()
@@ -178,8 +176,8 @@ func TestWatchlistController_AddToWatchlist_Success(t *testing.T) {
 	var response dto.WatchListDTO
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedItem.ID, response.ID)
 	assert.Equal(t, expectedItem.MovieID, response.MovieID)
+	assert.Equal(t, expectedItem.UserID, response.UserID)
 	assert.Equal(t, expectedItem.Status, response.Status)
 
 	mockService.AssertExpectations(t)
