@@ -52,7 +52,7 @@ func (c *WatchlistController) GetUserWatchlist(ctx *gin.Context) error {
 		return utils.NewUnauthorizedError("error.auth.user_not_found")
 	}
 
-	watchlist, err := c.watchlistService.GetByUser(int64(user.ID))
+	watchlist, err := c.watchlistService.GetByUser(user.ID)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (c *WatchlistController) AddToWatchlist(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_request", err)
 	}
 
-	watchlistItem, err := c.watchlistService.AddToWatchlist(int64(user.ID), req)
+	watchlistItem, err := c.watchlistService.AddToWatchlist(user.ID, req)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (c *WatchlistController) UpdateWatchlistItem(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_request", err)
 	}
 
-	watchlistItem, err := c.watchlistService.UpdateWatchlistItem(int64(user.ID), id, req.Status, req.Favorite, req.Comments, req.Rating)
+	watchlistItem, err := c.watchlistService.UpdateWatchlistItem(user.ID, id, req.Status, req.Favorite, req.Comments, req.Rating)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (c *WatchlistController) RemoveFromWatchlist(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_id", err)
 	}
 
-	err = c.watchlistService.RemoveFromWatchlist(int64(user.ID), id)
+	err = c.watchlistService.RemoveFromWatchlist(user.ID, id)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (c *WatchlistController) UpdateStatus(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_status", err)
 	}
 
-	watchlistItem, err := c.watchlistService.UpdateStatus(int64(user.ID), id, req.Status)
+	watchlistItem, err := c.watchlistService.UpdateStatus(user.ID, id, req.Status)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (c *WatchlistController) ToggleFavorite(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_favorite", err)
 	}
 
-	watchlistItem, err := c.watchlistService.ToggleFavorite(int64(user.ID), id, req.Favorite)
+	watchlistItem, err := c.watchlistService.ToggleFavorite(user.ID, id, req.Favorite)
 	if err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func (c *WatchlistController) UpdateRating(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_rating", err)
 	}
 
-	watchlistItem, err := c.watchlistService.UpdateRating(int64(user.ID), id, req.Rating)
+	watchlistItem, err := c.watchlistService.UpdateRating(user.ID, id, req.Rating)
 	if err != nil {
 		return err
 	}

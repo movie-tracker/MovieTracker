@@ -10,13 +10,13 @@ import (
 )
 
 type IWatchListRepository interface {
-	GetByUser(userID int64) ([]model.Watchlist, error)
-	AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (model.Watchlist, error)
-	UpdateWatchlistItem(userID int64, id int, status string, favorite *bool, comments string, rating *int) (model.Watchlist, error)
-	RemoveFromWatchlist(userID int64, id int) error
-	UpdateStatus(userID int64, id int, status string) (model.Watchlist, error)
-	ToggleFavorite(userID int64, id int, favorite bool) (model.Watchlist, error)
-	UpdateRating(userID int64, id int, rating *int) (model.Watchlist, error)
+	GetByUser(userID int32) ([]model.Watchlist, error)
+	AddToWatchlist(userID int32, createDTO dto.WatchListCreateDTO) (model.Watchlist, error)
+	UpdateWatchlistItem(userID int32, movieID int, status string, favorite *bool, comments string, rating *int) (model.Watchlist, error)
+	RemoveFromWatchlist(userID int32, movieID int) error
+	UpdateStatus(userID int32, movieID int, status string) (model.Watchlist, error)
+	ToggleFavorite(userID int32, movieID int, favorite bool) (model.Watchlist, error)
+	UpdateRating(userID int32, movieID int, rating *int) (model.Watchlist, error)
 }
 
 type WatchListRepository struct {
@@ -29,10 +29,10 @@ func newWatchListRepository(params RepositoryParams) IWatchListRepository {
 	}
 }
 
-func (r *WatchListRepository) GetByUser(userID int64) ([]model.Watchlist, error) {
+func (r *WatchListRepository) GetByUser(userID int32) ([]model.Watchlist, error) {
 	qb := SELECT(table.Watchlist.AllColumns).
 		FROM(table.Watchlist).
-		WHERE(table.Watchlist.UserID.EQ(Int(userID)))
+		WHERE(table.Watchlist.UserID.EQ(Int32(userID)))
 
 	var watchList []model.Watchlist
 	err := qb.Query(r.DB, &watchList)
@@ -40,11 +40,11 @@ func (r *WatchListRepository) GetByUser(userID int64) ([]model.Watchlist, error)
 	return watchList, err
 }
 
-func (r *WatchListRepository) AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (model.Watchlist, error) {
+func (r *WatchListRepository) AddToWatchlist(userID int32, createDTO dto.WatchListCreateDTO) (model.Watchlist, error) {
 	var watchlistItem model.Watchlist
-	var model = model.Watchlist{
-		MovieID:  &createDTO.MovieID,
-		UserID:   int32(userID),
+	watchlistModel := model.Watchlist{
+		MovieID:  createDTO.MovieID,
+		UserID:   userID,
 		Status:   createDTO.Status,
 		Favorite: createDTO.Favorite,
 		Comments: createDTO.Comments,
@@ -57,18 +57,19 @@ func (r *WatchListRepository) AddToWatchlist(userID int64, createDTO dto.WatchLi
 		table.Watchlist.Status,
 		table.Watchlist.Favorite,
 		table.Watchlist.Comments,
-	).MODEL(model).
+		table.Watchlist.Rating,
+	).MODEL(watchlistModel).
 		RETURNING(table.Watchlist.AllColumns)
 
 	err := insertStatement.Query(r.DB, &watchlistItem)
 	return watchlistItem, err
 }
 
-func (r *WatchListRepository) UpdateWatchlistItem(userID int64, id int, status string, favorite *bool, comments string, rating *int) (model.Watchlist, error) {
+func (r *WatchListRepository) UpdateWatchlistItem(userID int32, movieID int, status string, favorite *bool, comments string, rating *int) (model.Watchlist, error) {
 	var watchlistItem model.Watchlist
 
 	updateStmt := table.Watchlist.UPDATE().
-		WHERE(table.Watchlist.ID.EQ(Int32(int32(id))).AND(table.Watchlist.UserID.EQ(Int(userID))))
+		WHERE(table.Watchlist.MovieID.EQ(Int32(int32(movieID))).AND(table.Watchlist.UserID.EQ(Int32(userID))))
 
 	if status != "" {
 		updateStmt = updateStmt.SET(table.Watchlist.Status.SET(String(status)))
@@ -89,43 +90,43 @@ func (r *WatchListRepository) UpdateWatchlistItem(userID int64, id int, status s
 	return watchlistItem, err
 }
 
-func (r *WatchListRepository) RemoveFromWatchlist(userID int64, id int) error {
+func (r *WatchListRepository) RemoveFromWatchlist(userID int32, movieID int) error {
 	deleteStmt := table.Watchlist.DELETE().
-		WHERE(table.Watchlist.ID.EQ(Int32(int32(id))).AND(table.Watchlist.UserID.EQ(Int(userID))))
+		WHERE(table.Watchlist.MovieID.EQ(Int32(int32(movieID))).AND(table.Watchlist.UserID.EQ(Int32(userID))))
 
 	_, err := deleteStmt.Exec(r.DB)
 	return err
 }
 
-func (r *WatchListRepository) UpdateStatus(userID int64, id int, status string) (model.Watchlist, error) {
+func (r *WatchListRepository) UpdateStatus(userID int32, movieID int, status string) (model.Watchlist, error) {
 	var watchlistItem model.Watchlist
 
 	updateStmt := table.Watchlist.UPDATE().
 		SET(table.Watchlist.Status.SET(String(status))).
-		WHERE(table.Watchlist.ID.EQ(Int32(int32(id))).AND(table.Watchlist.UserID.EQ(Int(userID)))).
+		WHERE(table.Watchlist.MovieID.EQ(Int32(int32(movieID))).AND(table.Watchlist.UserID.EQ(Int32(userID)))).
 		RETURNING(table.Watchlist.AllColumns)
 
 	err := updateStmt.Query(r.DB, &watchlistItem)
 	return watchlistItem, err
 }
 
-func (r *WatchListRepository) ToggleFavorite(userID int64, id int, favorite bool) (model.Watchlist, error) {
+func (r *WatchListRepository) ToggleFavorite(userID int32, movieID int, favorite bool) (model.Watchlist, error) {
 	var watchlistItem model.Watchlist
 
 	updateStmt := table.Watchlist.UPDATE().
 		SET(table.Watchlist.Favorite.SET(Bool(favorite))).
-		WHERE(table.Watchlist.ID.EQ(Int32(int32(id))).AND(table.Watchlist.UserID.EQ(Int(userID)))).
+		WHERE(table.Watchlist.MovieID.EQ(Int32(int32(movieID))).AND(table.Watchlist.UserID.EQ(Int32(userID)))).
 		RETURNING(table.Watchlist.AllColumns)
 
 	err := updateStmt.Query(r.DB, &watchlistItem)
 	return watchlistItem, err
 }
 
-func (r *WatchListRepository) UpdateRating(userID int64, id int, rating *int) (model.Watchlist, error) {
+func (r *WatchListRepository) UpdateRating(userID int32, movieID int, rating *int) (model.Watchlist, error) {
 	var watchlistItem model.Watchlist
 
 	updateStmt := table.Watchlist.UPDATE().
-		WHERE(table.Watchlist.ID.EQ(Int32(int32(id))).AND(table.Watchlist.UserID.EQ(Int(userID))))
+		WHERE(table.Watchlist.MovieID.EQ(Int32(int32(movieID))).AND(table.Watchlist.UserID.EQ(Int32(userID))))
 
 	if rating != nil {
 		updateStmt = updateStmt.SET(table.Watchlist.Rating.SET(Int32(int32(*rating))))

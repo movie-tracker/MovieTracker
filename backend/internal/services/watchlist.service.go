@@ -7,13 +7,13 @@ import (
 
 type IWatchList interface {
 	IService
-	GetByUser(userID int64) ([]dto.WatchListDTO, error)
-	AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error)
-	UpdateWatchlistItem(userID int64, id int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error)
-	RemoveFromWatchlist(userID int64, id int) error
-	UpdateStatus(userID int64, id int, status string) (dto.WatchListDTO, error)
-	ToggleFavorite(userID int64, id int, favorite bool) (dto.WatchListDTO, error)
-	UpdateRating(userID int64, id int, rating *int) (dto.WatchListDTO, error)
+	GetByUser(userID int32) ([]dto.WatchListDTO, error)
+	AddToWatchlist(userID int32, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error)
+	UpdateWatchlistItem(userID int32, movieID int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error)
+	RemoveFromWatchlist(userID int32, movieID int) error
+	UpdateStatus(userID int32, movieID int, status string) (dto.WatchListDTO, error)
+	ToggleFavorite(userID int32, movieID int, favorite bool) (dto.WatchListDTO, error)
+	UpdateRating(userID int32, movieID int, rating *int) (dto.WatchListDTO, error)
 }
 
 type WatchListService struct {
@@ -28,7 +28,7 @@ func newWatchListService(params ServicesParams) IWatchList {
 
 func (s *WatchListService) ProvideServices(Services) {}
 
-func (s *WatchListService) GetByUser(userID int64) ([]dto.WatchListDTO, error) {
+func (s *WatchListService) GetByUser(userID int32) ([]dto.WatchListDTO, error) {
 	watchlistItems, err := s.repo.GetByUser(userID)
 	if err != nil {
 		return nil, err
@@ -37,8 +37,7 @@ func (s *WatchListService) GetByUser(userID int64) ([]dto.WatchListDTO, error) {
 	var watchlistDTOs = make([]dto.WatchListDTO, 0)
 	for _, item := range watchlistItems {
 		watchlistDTO := dto.WatchListDTO{
-			ID:       item.ID,
-			MovieID:  *item.MovieID,
+			MovieID:  item.MovieID,
 			UserID:   item.UserID,
 			Status:   item.Status,
 			Favorite: item.Favorite,
@@ -51,15 +50,14 @@ func (s *WatchListService) GetByUser(userID int64) ([]dto.WatchListDTO, error) {
 	return watchlistDTOs, nil
 }
 
-func (s *WatchListService) AddToWatchlist(userID int64, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error) {
+func (s *WatchListService) AddToWatchlist(userID int32, createDTO dto.WatchListCreateDTO) (dto.WatchListDTO, error) {
 	watchListItem, err := s.repo.AddToWatchlist(userID, createDTO)
 	if err != nil {
 		return dto.WatchListDTO{}, err
 	}
 
 	watchlistDTO := dto.WatchListDTO{
-		ID:       watchListItem.ID,
-		MovieID:  *watchListItem.MovieID,
+		MovieID:  watchListItem.MovieID,
 		UserID:   watchListItem.UserID,
 		Status:   watchListItem.Status,
 		Favorite: watchListItem.Favorite,
@@ -70,15 +68,14 @@ func (s *WatchListService) AddToWatchlist(userID int64, createDTO dto.WatchListC
 	return watchlistDTO, nil
 }
 
-func (s *WatchListService) UpdateWatchlistItem(userID int64, id int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error) {
-	watchlistItem, err := s.repo.UpdateWatchlistItem(userID, id, status, favorite, comments, rating)
+func (s *WatchListService) UpdateWatchlistItem(userID int32, movieID int, status string, favorite *bool, comments string, rating *int) (dto.WatchListDTO, error) {
+	watchlistItem, err := s.repo.UpdateWatchlistItem(userID, movieID, status, favorite, comments, rating)
 	if err != nil {
 		return dto.WatchListDTO{}, err
 	}
 
 	watchlistDTO := dto.WatchListDTO{
-		ID:       watchlistItem.ID,
-		MovieID:  *watchlistItem.MovieID,
+		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
@@ -89,19 +86,18 @@ func (s *WatchListService) UpdateWatchlistItem(userID int64, id int, status stri
 	return watchlistDTO, nil
 }
 
-func (s *WatchListService) RemoveFromWatchlist(userID int64, id int) error {
-	return s.repo.RemoveFromWatchlist(userID, id)
+func (s *WatchListService) RemoveFromWatchlist(userID int32, movieID int) error {
+	return s.repo.RemoveFromWatchlist(userID, movieID)
 }
 
-func (s *WatchListService) UpdateStatus(userID int64, id int, status string) (dto.WatchListDTO, error) {
-	watchlistItem, err := s.repo.UpdateStatus(userID, id, status)
+func (s *WatchListService) UpdateStatus(userID int32, movieID int, status string) (dto.WatchListDTO, error) {
+	watchlistItem, err := s.repo.UpdateStatus(userID, movieID, status)
 	if err != nil {
 		return dto.WatchListDTO{}, err
 	}
 
 	watchlistDTO := dto.WatchListDTO{
-		ID:       watchlistItem.ID,
-		MovieID:  *watchlistItem.MovieID,
+		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
@@ -112,15 +108,14 @@ func (s *WatchListService) UpdateStatus(userID int64, id int, status string) (dt
 	return watchlistDTO, nil
 }
 
-func (s *WatchListService) ToggleFavorite(userID int64, id int, favorite bool) (dto.WatchListDTO, error) {
-	watchlistItem, err := s.repo.ToggleFavorite(userID, id, favorite)
+func (s *WatchListService) ToggleFavorite(userID int32, movieID int, favorite bool) (dto.WatchListDTO, error) {
+	watchlistItem, err := s.repo.ToggleFavorite(userID, movieID, favorite)
 	if err != nil {
 		return dto.WatchListDTO{}, err
 	}
 
 	watchlistDTO := dto.WatchListDTO{
-		ID:       watchlistItem.ID,
-		MovieID:  *watchlistItem.MovieID,
+		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
@@ -131,15 +126,14 @@ func (s *WatchListService) ToggleFavorite(userID int64, id int, favorite bool) (
 	return watchlistDTO, nil
 }
 
-func (s *WatchListService) UpdateRating(userID int64, id int, rating *int) (dto.WatchListDTO, error) {
-	watchlistItem, err := s.repo.UpdateRating(userID, id, rating)
+func (s *WatchListService) UpdateRating(userID int32, movieID int, rating *int) (dto.WatchListDTO, error) {
+	watchlistItem, err := s.repo.UpdateRating(userID, movieID, rating)
 	if err != nil {
 		return dto.WatchListDTO{}, err
 	}
 
 	watchlistDTO := dto.WatchListDTO{
-		ID:       watchlistItem.ID,
-		MovieID:  *watchlistItem.MovieID,
+		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,

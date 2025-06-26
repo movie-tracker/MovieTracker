@@ -4,13 +4,13 @@
 CREATE TYPE watch_status as ENUM ('unwatched', 'watching', 'plan to watch', 'watched');
 
 CREATE TABLE "watchlist" (
-  "id" serial primary KEY,
-  "movie_id" int,
+  "movie_id" int not null,
   "user_id" int not null,
   "status" watch_status default 'unwatched' not null,
   "favorite" boolean default false not null,
-  "comments" varchar default '' not null,
-  "rating" int
+  "comments" varchar,
+  "rating" int,
+  PRIMARY KEY ("movie_id", "user_id")
 );
 
 ALTER TABLE "watchlist" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");

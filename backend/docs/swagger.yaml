@@ -152,7 +152,7 @@ definitions:
     - WatchStatus_Watching
     - WatchStatus_PlanToWatch
     - WatchStatus_Watched
-host: localhost:8080
+host: localhost:8888
 info:
   contact:
     email: support@swagger.io
