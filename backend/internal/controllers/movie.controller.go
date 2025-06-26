@@ -30,6 +30,14 @@ func (c *MovieController) RegisterHandlers(params ControllerRegisterParams) {
 	router.GET("/:id", utils.MakeHandler(c.GetMovieByID)) // GET /movies/:id
 }
 
+// @Summary Discover movies
+// @Description Get a list of popular/recommended movies
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Success 200 {array} dto.MovieDTO
+// @Failure 500 {object} dto.ErrorResponseDTO
+// @Router /movies [get]
 func (c *MovieController) DiscoverMovies(ctx *gin.Context) error {
 	movies, err := c.movieService.DiscoverMovies()
 	if err != nil {
@@ -40,6 +48,16 @@ func (c *MovieController) DiscoverMovies(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Get movie by ID
+// @Description Get detailed information about a specific movie
+// @Tags movies
+// @Accept json
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Success 200 {object} dto.MovieDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /movies/{id} [get]
 func (c *MovieController) GetMovieByID(ctx *gin.Context) error {
 	idParam := ctx.Param("id")
 	id, err := strconv.Atoi(idParam)

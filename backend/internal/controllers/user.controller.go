@@ -33,6 +33,16 @@ func (c *UserController) RegisterHandlers(params ControllerRegisterParams) {
 	router.POST("", utils.MakeHandler(c.Create))                     // POST /users
 }
 
+// @Summary Get all users
+// @Description Get a list of all users
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} dto.UserDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 500 {object} dto.ErrorResponseDTO
+// @Router /users [get]
 func (c *UserController) FindAll(ctx *gin.Context) error {
 	users, err := c.userService.FindAll()
 	if err != nil {
@@ -43,6 +53,17 @@ func (c *UserController) FindAll(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Find user by email
+// @Description Get user information by email address
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param email path string true "User email"
+// @Success 200 {object} dto.UserDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /users/by-email/{email} [get]
 func (c *UserController) FindByEmail(ctx *gin.Context) error {
 	email := ctx.Param("email")
 
@@ -56,6 +77,18 @@ func (c *UserController) FindByEmail(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Create new user
+// @Description Create a new user account
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param user body dto.UserCreateDTO true "User data"
+// @Success 201 {object} dto.UserDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 409 {object} dto.ErrorResponseDTO
+// @Router /users [post]
 func (c *UserController) Create(ctx *gin.Context) error {
 	var userDTO dto.UserCreateDTO
 
@@ -73,6 +106,15 @@ func (c *UserController) Create(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Get user profile
+// @Description Get the authenticated user's profile information
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.UserDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Router /users/profile [get]
 func (c UserController) GetProfile(ctx *gin.Context) error {
 	requester, ok := getRequester(ctx)
 	if !ok {

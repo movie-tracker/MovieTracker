@@ -30,6 +30,16 @@ func (c *AuthController) RegisterHandlers(params ControllerRegisterParams) {
 	router.POST("/register", utils.MakeHandler(c.Register)) // POST /auth/register
 }
 
+// @Summary User login
+// @Description Authenticate user credentials and return JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param credentials body dto.LoginRequestDTO true "Login credentials"
+// @Success 200 {object} dto.AuthResponseDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Router /auth/login [post]
 func (c *AuthController) Login(ctx *gin.Context) error {
 	var loginDTO dto.LoginRequestDTO
 	var err error
@@ -54,6 +64,16 @@ func (c *AuthController) Login(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary User registration
+// @Description Register a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body dto.UserCreateDTO true "User registration data"
+// @Success 201 {object} dto.UserDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 409 {object} dto.ErrorResponseDTO
+// @Router /auth/register [post]
 func (c *AuthController) Register(ctx *gin.Context) error {
 	var err error
 	var userCreateDTO dto.UserCreateDTO

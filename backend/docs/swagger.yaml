@@ -1,0 +1,657 @@
+basePath: /api
+definitions:
+  dto.AuthResponseDTO:
+    properties:
+      authToken:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  dto.ErrorResponseDTO:
+    properties:
+      message:
+        example: error.generic.bad_request
+        type: string
+      status_code:
+        example: 400
+        type: integer
+    type: object
+  dto.LoginRequestDTO:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dto.MovieDTO:
+    properties:
+      background_path:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      genre:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      poster_path:
+        type: string
+      title:
+        type: string
+      year:
+        type: string
+    type: object
+  dto.ToggleFavoriteRequestDTO:
+    properties:
+      favorite:
+        example: true
+        type: boolean
+    required:
+    - favorite
+    type: object
+  dto.UpdateRatingRequestDTO:
+    properties:
+      rating:
+        example: 8
+        maximum: 10
+        minimum: 1
+        type: integer
+    type: object
+  dto.UpdateStatusRequestDTO:
+    properties:
+      status:
+        enum:
+        - unwatched
+        - watching
+        - plan to watch
+        - watched
+        example: watched
+        type: string
+    required:
+    - status
+    type: object
+  dto.UpdateWatchlistRequestDTO:
+    properties:
+      comments:
+        example: Great movie!
+        type: string
+      favorite:
+        example: true
+        type: boolean
+      rating:
+        example: 9
+        type: integer
+      status:
+        example: watched
+        type: string
+    type: object
+  dto.UserCreateDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dto.UserDTO:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+  dto.WatchListCreateDTO:
+    properties:
+      comments:
+        type: string
+      favorite:
+        type: boolean
+      movie_id:
+        type: integer
+      rating:
+        type: integer
+      status:
+        $ref: '#/definitions/model.WatchStatus'
+    required:
+    - movie_id
+    type: object
+  dto.WatchListDTO:
+    properties:
+      comments:
+        type: string
+      favorite:
+        type: boolean
+      id:
+        type: integer
+      movie_id:
+        type: integer
+      rating:
+        type: integer
+      status:
+        $ref: '#/definitions/model.WatchStatus'
+      user_id:
+        type: integer
+    type: object
+  model.WatchStatus:
+    enum:
+    - unwatched
+    - watching
+    - plan to watch
+    - watched
+    type: string
+    x-enum-varnames:
+    - WatchStatus_Unwatched
+    - WatchStatus_Watching
+    - WatchStatus_PlanToWatch
+    - WatchStatus_Watched
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A movie tracking API service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Movie Tracker API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user credentials and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: User login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCreateDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: User registration
+      tags:
+      - auth
+  /movies:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of popular/recommended movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.MovieDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: Discover movies
+      tags:
+      - movies
+  /movies/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MovieDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      summary: Get movie by ID
+      tags:
+      - movies
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UserDTO'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCreateDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Create new user
+      tags:
+      - users
+  /users/by-email/{email}:
+    get:
+      consumes:
+      - application/json
+      description: Get user information by email address
+      parameters:
+      - description: User email
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Find user by email
+      tags:
+      - users
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+  /watchlist:
+    get:
+      consumes:
+      - application/json
+      description: Get the authenticated user's watchlist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.WatchListDTO'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Get user watchlist
+      tags:
+      - watchlist
+    post:
+      consumes:
+      - application/json
+      description: Add a movie to the authenticated user's watchlist
+      parameters:
+      - description: Watchlist item data
+        in: body
+        name: watchlist
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WatchListCreateDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.WatchListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Add movie to watchlist
+      tags:
+      - watchlist
+  /watchlist/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a movie from the authenticated user's watchlist
+      parameters:
+      - description: Watchlist item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Remove movie from watchlist
+      tags:
+      - watchlist
+    put:
+      consumes:
+      - application/json
+      description: Update multiple fields of a watchlist item
+      parameters:
+      - description: Watchlist item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated watchlist data
+        in: body
+        name: watchlist
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateWatchlistRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.WatchListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Update watchlist item
+      tags:
+      - watchlist
+  /watchlist/{id}/favorite:
+    patch:
+      consumes:
+      - application/json
+      description: Toggle the favorite status of a watchlist item
+      parameters:
+      - description: Watchlist item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Favorite status
+        in: body
+        name: favorite
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ToggleFavoriteRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.WatchListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Toggle favorite status
+      tags:
+      - watchlist
+  /watchlist/{id}/rating:
+    patch:
+      consumes:
+      - application/json
+      description: Update the rating of a watchlist item
+      parameters:
+      - description: Watchlist item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Movie rating (1-10)
+        in: body
+        name: rating
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRatingRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.WatchListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Update movie rating
+      tags:
+      - watchlist
+  /watchlist/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the watch status of a watchlist item
+      parameters:
+      - description: Watchlist item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.WatchListDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDTO'
+      security:
+      - BearerAuth: []
+      summary: Update watchlist status
+      tags:
+      - watchlist
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
