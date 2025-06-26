@@ -34,4 +34,13 @@ update_database:
 
 
 .PHONY: remake_database
-remake_database:
+
+.PHONY: swagger
+swagger:
+	swag init
+
+.PHONY: swagger-serve
+swagger-serve: swagger
+	@echo "Starting server with Swagger documentation..."
+	@echo "Swagger UI will be available at: http://localhost:8080/swagger/index.html"
+	@$(MAKE) run
