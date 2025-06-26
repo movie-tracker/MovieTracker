@@ -12,4 +12,5 @@ package table
 func UseSchema(schema string) {
 	GooseDbVersion = GooseDbVersion.FromSchema(schema)
 	Users = Users.FromSchema(schema)
+	Watchlist = Watchlist.FromSchema(schema)
 }
