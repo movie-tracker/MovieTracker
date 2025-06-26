@@ -36,6 +36,16 @@ func (c *WatchlistController) RegisterHandlers(params ControllerRegisterParams) 
 	router.PATCH("/:id/rating", utils.MakeHandler(c.UpdateRating))     // PATCH /watchlist/:id/rating
 }
 
+// @Summary Get user watchlist
+// @Description Get the authenticated user's watchlist
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} dto.WatchListDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 500 {object} dto.ErrorResponseDTO
+// @Router /watchlist [get]
 func (c *WatchlistController) GetUserWatchlist(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -51,6 +61,18 @@ func (c *WatchlistController) GetUserWatchlist(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Add movie to watchlist
+// @Description Add a movie to the authenticated user's watchlist
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param watchlist body dto.WatchListCreateDTO true "Watchlist item data"
+// @Success 201 {object} dto.WatchListDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 409 {object} dto.ErrorResponseDTO
+// @Router /watchlist [post]
 func (c *WatchlistController) AddToWatchlist(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -72,6 +94,19 @@ func (c *WatchlistController) AddToWatchlist(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Update watchlist item
+// @Description Update multiple fields of a watchlist item
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Watchlist item ID"
+// @Param watchlist body dto.UpdateWatchlistRequestDTO true "Updated watchlist data"
+// @Success 200 {object} dto.WatchListDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /watchlist/{id} [put]
 func (c *WatchlistController) UpdateWatchlistItem(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -84,12 +119,7 @@ func (c *WatchlistController) UpdateWatchlistItem(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_id", err)
 	}
 
-	var req struct {
-		Status   string `json:"status,omitempty"`
-		Favorite *bool  `json:"favorite,omitempty"`
-		Comments string `json:"comments,omitempty"`
-		Rating   *int   `json:"rating,omitempty"`
-	}
+	var req dto.UpdateWatchlistRequestDTO
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		return utils.NewValidationError("error.watchlist.invalid_request", err)
@@ -104,6 +134,18 @@ func (c *WatchlistController) UpdateWatchlistItem(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Remove movie from watchlist
+// @Description Remove a movie from the authenticated user's watchlist
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Watchlist item ID"
+// @Success 204
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /watchlist/{id} [delete]
 func (c *WatchlistController) RemoveFromWatchlist(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -125,6 +167,19 @@ func (c *WatchlistController) RemoveFromWatchlist(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Update watchlist status
+// @Description Update the watch status of a watchlist item
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Watchlist item ID"
+// @Param status body dto.UpdateStatusRequestDTO true "New status"
+// @Success 200 {object} dto.WatchListDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /watchlist/{id}/status [patch]
 func (c *WatchlistController) UpdateStatus(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -137,9 +192,7 @@ func (c *WatchlistController) UpdateStatus(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_id", err)
 	}
 
-	var req struct {
-		Status string `json:"status" binding:"required,oneof=unwatched watching 'plan to watch' watched"`
-	}
+	var req dto.UpdateStatusRequestDTO
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		return utils.NewValidationError("error.watchlist.invalid_status", err)
@@ -154,6 +207,19 @@ func (c *WatchlistController) UpdateStatus(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Toggle favorite status
+// @Description Toggle the favorite status of a watchlist item
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Watchlist item ID"
+// @Param favorite body dto.ToggleFavoriteRequestDTO true "Favorite status"
+// @Success 200 {object} dto.WatchListDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /watchlist/{id}/favorite [patch]
 func (c *WatchlistController) ToggleFavorite(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -166,9 +232,7 @@ func (c *WatchlistController) ToggleFavorite(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_id", err)
 	}
 
-	var req struct {
-		Favorite bool `json:"favorite" binding:"required"`
-	}
+	var req dto.ToggleFavoriteRequestDTO
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		return utils.NewValidationError("error.watchlist.invalid_favorite", err)
@@ -183,6 +247,19 @@ func (c *WatchlistController) ToggleFavorite(ctx *gin.Context) error {
 	return nil
 }
 
+// @Summary Update movie rating
+// @Description Update the rating of a watchlist item
+// @Tags watchlist
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Watchlist item ID"
+// @Param rating body dto.UpdateRatingRequestDTO true "Movie rating (1-10)"
+// @Success 200 {object} dto.WatchListDTO
+// @Failure 400 {object} dto.ErrorResponseDTO
+// @Failure 401 {object} dto.ErrorResponseDTO
+// @Failure 404 {object} dto.ErrorResponseDTO
+// @Router /watchlist/{id}/rating [patch]
 func (c *WatchlistController) UpdateRating(ctx *gin.Context) error {
 	user, exists := getRequester(ctx)
 	if !exists {
@@ -195,9 +272,7 @@ func (c *WatchlistController) UpdateRating(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_id", err)
 	}
 
-	var req struct {
-		Rating *int `json:"rating" binding:"omitempty,min=1,max=10"`
-	}
+	var req dto.UpdateRatingRequestDTO
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		return utils.NewValidationError("error.watchlist.invalid_rating", err)
