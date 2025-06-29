@@ -129,22 +129,9 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           {movie.title}
         </h3>
         
-        <div className="flex items-center justify-between text-sm text-gray-400 mb-3">
+        <div className="flex items-center justify-between text-sm text-gray-400">
           <span>{movie.year}</span>
           <span>{movie.duration}</span>
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {movie.genre.slice(0, 2).map((genre) => (
-            <Badge key={genre} variant="outline" className="text-xs border-gray-600 text-gray-300">
-              {genre}
-            </Badge>
-          ))}
-          {movie.genre.length > 2 && (
-            <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
-              +{movie.genre.length - 2}
-            </Badge>
-          )}
         </div>
       </CardContent>
     </Card>

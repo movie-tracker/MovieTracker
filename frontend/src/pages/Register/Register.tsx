@@ -12,8 +12,10 @@ import useAuthentication from '@/context/AuthContext';
 import { authService } from '@/services/authService';
 
 const registerSchema = z.object({
+  name: z.string({ required_error: 'Nome é obrigatório' }).min(2, 'Nome deve ter pelo menos 2 caracteres'),
   username: z.string({ required_error: 'Nome de usuário é obrigatório' }).min(3, 'Nome de usuário deve ter pelo menos 3 caracteres'),
   email: z.string({ required_error: 'Email é obrigatório' }).email('Email inválido'),
+  phone: z.string().optional(),
   password: z.string({ required_error: 'Senha é obrigatória' }).min(6, 'Senha deve ter pelo menos 6 caracteres'),
   confirmPassword: z.string({ required_error: 'Confirme sua senha' }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -32,8 +34,10 @@ function RegisterPage() {
   const onSubmit = async (values: FormData) => {
     try {
       await authService.register({
+        name: values.name,
         username: values.username,
         email: values.email,
+        phone: values.phone || undefined,
         password: values.password,
       });
       
@@ -41,10 +45,20 @@ function RegisterPage() {
       // Redirecionar para login após registro bem-sucedido
       window.location.href = '/login';
     } catch (error: any) {
+      // Tratar erros de registro de forma mais específica
       if (error.message) {
         toast.error(error.message);
+        
+        // Limpar campos específicos em caso de erro
+        if (error.message.includes('email já está em uso')) {
+          form.setValue('email', '');
+          form.setFocus('email');
+        } else if (error.message.includes('nome de usuário já está em uso')) {
+          form.setValue('username', '');
+          form.setFocus('username');
+        }
       } else {
-        toast.error('Erro ao criar conta. Tente novamente.');
+        toast.error('Erro inesperado ao criar conta. Tente novamente.');
       }
     }
   };
@@ -61,6 +75,23 @@ function RegisterPage() {
         <h1 className="text-2xl font-semibold text-center mb-6 text-white">Criar Conta</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">Nome</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Digite seu nome" 
+                      {...field} 
+                      className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="username"
@@ -88,6 +119,24 @@ function RegisterPage() {
                     <Input 
                       type="email" 
                       placeholder="Digite seu email" 
+                      {...field} 
+                      className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">Telefone</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="tel" 
+                      placeholder="Digite seu telefone" 
                       {...field} 
                       className="bg-white/10 border-white/20 text-white placeholder-gray-400"
                     />

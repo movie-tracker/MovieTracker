@@ -6,31 +6,39 @@ import (
 )
 
 type UserDTO struct {
-	ID       int32  `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	ID       int32   `json:"id"`
+	Name     string  `json:"name"`
+	Username string  `json:"username"`
+	Email    string  `json:"email"`
+	Phone    *string `json:"phone,omitempty"`
 }
 
 func (u UserDTO) ToModel() model.Users {
 	return model.Users{
 		ID:       u.ID,
+		Name:     u.Name,
 		Username: u.Username,
 		Email:    u.Email,
+		Phone:    u.Phone,
 	}
 }
 
 func (u *UserDTO) FromModel(user model.Users) {
 	*u = UserDTO{
 		ID:       user.ID,
+		Name:     user.Name,
 		Username: user.Username,
 		Email:    user.Email,
+		Phone:    user.Phone,
 	}
 }
 
 type UserCreateDTO struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name     string  `json:"name"`
+	Username string  `json:"username"`
+	Email    string  `json:"email"`
+	Phone    *string `json:"phone,omitempty"`
+	Password string  `json:"password"`
 }
 
 func (u UserCreateDTO) ToModel() model.Users {
@@ -38,8 +46,10 @@ func (u UserCreateDTO) ToModel() model.Users {
 	password, _ := bcrypt.GenerateFromPassword(passwdBytes, 14)
 
 	return model.Users{
+		Name:     u.Name,
 		Username: u.Username,
 		Email:    u.Email,
+		Phone:    u.Phone,
 		Password: string(password),
 	}
 }

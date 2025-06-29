@@ -23,11 +23,11 @@ const ExploreMovies = () => {
 
   const filteredMovies = movies.filter((movie: MovieDTO) => {
     const matchesSearch = movie.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGenre = !selectedGenre || movie.genre.some((g: string) => g.toLowerCase().includes(selectedGenre.toLowerCase()));
+    const matchesGenre = !selectedGenre || (movie.genre || []).some((g: string) => g.toLowerCase().includes(selectedGenre.toLowerCase()));
     return matchesSearch && matchesGenre;
   });
 
-  const genres = Array.from(new Set(movies.flatMap((movie: MovieDTO) => movie.genre)));
+  const genres = Array.from(new Set(movies.flatMap((movie: MovieDTO) => movie.genre || [])));
 
   if (isLoading) {
     return (

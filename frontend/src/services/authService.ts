@@ -6,8 +6,10 @@ export interface LoginRequestDTO {
 }
 
 export interface RegisterRequestDTO {
+  name: string;
   username: string;
   email: string;
+  phone?: string;
   password: string;
 }
 
@@ -36,7 +38,17 @@ export const authService = {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Login failed');
+      
+      // Tratar erros específicos de login
+      if (response.status === 401) {
+        throw new Error('Usuário ou senha incorretos. Verifique suas credenciais e tente novamente.');
+      } else if (response.status === 400) {
+        throw new Error(errorData.message || 'Dados de login inválidos. Verifique os campos e tente novamente.');
+      } else if (response.status === 500) {
+        throw new Error('Erro interno do servidor. Tente novamente mais tarde.');
+      } else {
+        throw new Error(errorData.message || 'Erro ao fazer login. Tente novamente.');
+      }
     }
     
     return response.json();
@@ -54,7 +66,23 @@ export const authService = {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Registration failed');
+      
+      // Tratar erros específicos de registro
+      if (response.status === 409) {
+        if (errorData.message?.includes('email') || errorData.message?.includes('Email')) {
+          throw new Error('Este email já está em uso. Tente usar outro email ou faça login se já possui uma conta.');
+        } else if (errorData.message?.includes('username') || errorData.message?.includes('Username')) {
+          throw new Error('Este nome de usuário já está em uso. Escolha outro nome de usuário.');
+        } else {
+          throw new Error('Dados já existem no sistema. Verifique email e nome de usuário.');
+        }
+      } else if (response.status === 400) {
+        throw new Error(errorData.message || 'Dados de registro inválidos. Verifique os campos e tente novamente.');
+      } else if (response.status === 500) {
+        throw new Error('Erro interno do servidor. Tente novamente mais tarde.');
+      } else {
+        throw new Error(errorData.message || 'Erro ao criar conta. Tente novamente.');
+      }
     }
     
     return response.json();

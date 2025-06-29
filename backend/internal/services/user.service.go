@@ -108,13 +108,13 @@ func (s UserService) ValidatePassword(username string, password string) error {
 	user, err := s.userRepo.FindByUsername(username)
 
 	if err != nil {
-		return utils.NewUnauthorizedError("")
+		return utils.NewUnauthorizedError("error.auth.invalid_credentials")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {
-		return utils.NewUnauthorizedError("")
+		return utils.NewUnauthorizedError("error.auth.invalid_credentials")
 	}
 
 	return nil

@@ -1,9 +1,6 @@
 import { 
     WatchListDTO, 
     WatchListCreateDTO, 
-    UpdateStatusRequestDTO, 
-    ToggleFavoriteRequestDTO, 
-    UpdateRatingRequestDTO,
     UpdateWatchlistRequestDTO 
   } from '@/types/movie';
   import { getApiUrl, API_CONFIG } from '@/config/api';
@@ -48,8 +45,8 @@ import {
     },
   
     // Atualizar status do filme na watchlist
-    async updateStatus(watchlistId: number, status: string): Promise<WatchListDTO> {
-      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_STATUS(watchlistId));
+    async updateStatus(movieId: number, status: string): Promise<WatchListDTO> {
+      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_STATUS(movieId));
       const payload = { status };
       console.log('[PATCH STATUS] URL:', url);
       console.log('[PATCH STATUS] Payload:', payload);
@@ -70,8 +67,8 @@ import {
     },
   
     // Toggle favorito
-    async toggleFavorite(watchlistId: number, favorite: boolean): Promise<WatchListDTO> {
-      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_FAVORITE(watchlistId));
+    async toggleFavorite(movieId: number, favorite: boolean): Promise<WatchListDTO> {
+      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_FAVORITE(movieId));
       const payload = { favorite };
       console.log('[PATCH FAVORITE] URL:', url);
       console.log('[PATCH FAVORITE] Payload:', payload);
@@ -92,8 +89,8 @@ import {
     },
   
     // Atualizar rating
-    async updateRating(watchlistId: number, rating: number): Promise<WatchListDTO> {
-      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_RATING(watchlistId));
+    async updateRating(movieId: number, rating: number): Promise<WatchListDTO> {
+      const url = getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_RATING(movieId));
       const payload = { rating };
       console.log('[PATCH RATING] URL:', url);
       console.log('[PATCH RATING] Payload:', payload);
@@ -114,12 +111,14 @@ import {
     },
   
     // Atualizar item da watchlist
-    async updateWatchlistItem(watchlistId: number, data: UpdateWatchlistRequestDTO): Promise<WatchListDTO> {
-      console.log('🌐 Fazendo requisição PUT para:', getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(watchlistId)));
+    async updateWatchlistItem(movieId: number, data: UpdateWatchlistRequestDTO): Promise<WatchListDTO> {
+      console.log('🌐 Fazendo requisição PUT para:', getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(movieId)));
       console.log('📤 Dados sendo enviados:', data);
+      console.log('📤 Comments sendo enviado:', data.comments);
+      console.log('📤 Comments tipo:', typeof data.comments);
       console.log('📤 JSON sendo enviado:', JSON.stringify(data));
       
-      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(watchlistId)), {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(movieId)), {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
@@ -139,8 +138,8 @@ import {
     },
   
     // Remover da watchlist
-    async removeFromWatchlist(watchlistId: number): Promise<void> {
-      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(watchlistId)), {
+    async removeFromWatchlist(movieId: number): Promise<void> {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.WATCHLIST_BY_ID(movieId)), {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
