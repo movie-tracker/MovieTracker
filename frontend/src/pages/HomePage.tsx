@@ -13,10 +13,11 @@ import { movieService } from "@/services/movieService";
 import { toast } from "sonner";
 import useAuthentication from "@/context/AuthContext";
 
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original";
 
 function getPosterUrl(posterPath?: string) {
-  return posterPath ? `${TMDB_IMAGE_BASE}${posterPath}` : "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
+  if (!posterPath) return "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
+  return posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`;
 }
 
 // Debounce hook otimizado
@@ -304,20 +305,22 @@ const HomePage = () => {
       <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <button
-                className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent focus:outline-none hover:underline"
-                onClick={() => {
-                  setSelectedStatus("all");
-                  setShowOnlyFavorites(false);
-                  setSearchTerm("");
-                }}
-                title="Mostrar todos os filmes"
-                style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-              >
-                Catálogo de Filmes
-              </button>
-              <span className="text-white text-sm mt-1">Olá, {auth.user?.name || auth.user?.username || 'usuário'}!</span>
+            <div className="flex items-center space-x-6">
+              <div className="flex flex-col">
+                <button
+                  className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent focus:outline-none hover:underline"
+                  onClick={() => {
+                    setSelectedStatus("all");
+                    setShowOnlyFavorites(false);
+                    setSearchTerm("");
+                  }}
+                  title="Mostrar todos os filmes"
+                  style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                >
+                  Catálogo de Filmes
+                </button>
+                <span className="text-white text-sm mt-1">Olá, {auth.user?.name || auth.user?.username || 'usuário'}!</span>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
