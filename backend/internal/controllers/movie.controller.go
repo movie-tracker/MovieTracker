@@ -35,11 +35,22 @@ func (c *MovieController) RegisterHandlers(params ControllerRegisterParams) {
 // @Tags movies
 // @Accept json
 // @Produce json
-// @Success 200 {array} dto.MovieDTO
+// @Param page query int false "Page number (default: 1)"
+// @Success 200 {object} dto.Pagination[dto.MovieDTO]
 // @Failure 500 {object} dto.ErrorResponseDTO
 // @Router /movies [get]
 func (c *MovieController) DiscoverMovies(ctx *gin.Context) error {
-	movies, err := c.movieService.DiscoverMovies()
+	// Pegar o parâmetro page da query string
+	pageStr := ctx.Query("page")
+	page := 1 // valor padrão
+	
+	if pageStr != "" {
+		if pageNum, err := strconv.Atoi(pageStr); err == nil && pageNum > 0 {
+			page = pageNum
+		}
+	}
+	
+	movies, err := c.movieService.DiscoverMovies(page)
 	if err != nil {
 		return err
 	}

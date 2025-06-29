@@ -9,7 +9,7 @@ import (
 type IMovieService interface {
 	IService
 	GetByID(id int) (dto.MovieDTO, error)
-	DiscoverMovies() (dto.Pagination[dto.MovieDTO], error)
+	DiscoverMovies(page int) (dto.Pagination[dto.MovieDTO], error)
 }
 
 type MovieService struct {
@@ -22,8 +22,8 @@ func newMovieService(params ServicesParams) IMovieService {
 	}
 }
 
-func (s *MovieService) DiscoverMovies() (movies dto.Pagination[dto.MovieDTO], err error) {
-	tmdbMovies, err := s.movieRepo.DiscoverMovies()
+func (s *MovieService) DiscoverMovies(page int) (movies dto.Pagination[dto.MovieDTO], err error) {
+	tmdbMovies, err := s.movieRepo.DiscoverMovies(page)
 	if err != nil {
 		return movies, err
 	}

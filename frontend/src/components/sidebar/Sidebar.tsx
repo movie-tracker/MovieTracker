@@ -1,4 +1,4 @@
-import { Film, Heart, Home } from 'lucide-react';
+import { Film, Home, Eye, Search } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const navLinkClasses = "flex items-center px-4 py-2 rounded-md mx-2 transition-colors";
@@ -27,20 +27,20 @@ export default function Sidebar() {
           </li>
           <li>
             <Link
-              to="/favorites"
-              className={`${navLinkClasses} mt-2 ${location.pathname === '/favorites' ? activeClasses : hoverClasses}`}
+              to="/home"
+              className={`${navLinkClasses} mt-2 ${location.pathname === '/home' ? activeClasses : hoverClasses}`}
             >
-              <Heart className="w-5 h-5 mr-3" />
-              <span>Favorites</span>
+              <Eye className="w-5 h-5 mr-3" />
+              <span>Meus Filmes</span>
             </Link>
           </li>
           <li>
             <Link
-              to="/watched"
-              className={`${navLinkClasses} mt-2 ${location.pathname === '/watched' ? activeClasses : hoverClasses}`}
+              to="/explore"
+              className={`${navLinkClasses} mt-2 ${location.pathname === '/explore' ? activeClasses : hoverClasses}`}
             >
-              <Film className="w-5 h-5 mr-3" />
-              <span>Watched</span>
+              <Search className="w-5 h-5 mr-3" />
+              <span>Explorar Filmes</span>
             </Link>
           </li>
         </ul>
