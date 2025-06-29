@@ -9,7 +9,6 @@ import Login from '@/pages/Login/Login';
 import Register from '@/pages/Register';
 import IntroPage from '@/pages/IntroPage';
 import HomePage from '@/pages/HomePage';
-import ExploreMovies from '@/pages/ExploreMovies';
 import MovieDetails from '@/pages/MovieDetails';
 
 import './App.css';
@@ -67,10 +66,6 @@ const router = createBrowserRouter([
       {
         path: '/home',
         element: <ProtectedRoute><HomePage /></ProtectedRoute>,
-      },
-      {
-        path: '/explore',
-        element: <ProtectedRoute><ExploreMovies /></ProtectedRoute>,
       },
       {
         path: '/movie/:id',

@@ -1,6 +1,7 @@
 package mappers
 
 import (
+	"fmt"
 	"github.com/movie-tracker/MovieTracker/internal/services/dto"
 )
 
@@ -9,11 +10,34 @@ func MapFromTMDBToMovieDTO(tmdbMovie dto.TMDBMovieDTO) dto.MovieDTO {
 	if len(tmdbMovie.ReleaseDate) >= 4 {
 		year = tmdbMovie.ReleaseDate[:4]
 	}
+	
+	// Mapear gêneros
+	genres := make([]string, 0)
+	for _, genre := range tmdbMovie.Genres {
+		genres = append(genres, genre.Name)
+	}
+	
+	// Mapear background path
+	backgroundPath := ""
+	if tmdbMovie.BackdropPath != nil {
+		backgroundPath = *tmdbMovie.BackdropPath
+	}
+	
+	// Mapear duração
+	duration := ""
+	if tmdbMovie.Runtime > 0 {
+		duration = fmt.Sprintf("%d", tmdbMovie.Runtime)
+	}
+	
 	return dto.MovieDTO{
-		ID:         tmdbMovie.ID,
-		Title:      tmdbMovie.OriginalTitle,
-		PosterPath: tmdbMovie.PosterPath,
-		Year:       year,
+		ID:             tmdbMovie.ID,
+		Title:          tmdbMovie.OriginalTitle,
+		PosterPath:     tmdbMovie.PosterPath,
+		BackgroundPath: backgroundPath,
+		Year:           year,
+		Description:    tmdbMovie.Overview,
+		Genre:          genres,
+		Duration:       duration,
 	}
 }
 

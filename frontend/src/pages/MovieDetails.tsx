@@ -11,6 +11,13 @@ import { useToast } from "@/hooks/use-toast";
 import { movieService } from "@/services/movieService";
 import { watchlistService } from "@/services/watchlistService";
 
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original";
+
+function getImageUrl(path?: string) {
+  if (!path) return "";
+  return path.startsWith('http') ? path : `${TMDB_IMAGE_BASE}${path}`;
+}
+
 const MovieDetails = () => {
   const { id } = useParams<{ id: string }>();
   const movieId = Number(id);
@@ -172,10 +179,10 @@ const MovieDetails = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{ backgroundImage: `url(${movie.background_path})` }}
+        className="absolute inset-0 bg-cover bg-center opacity-90"
+        style={{ backgroundImage: `url(${getImageUrl(movie.background_path)})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
 
       {/* Content */}
       <div className="relative z-10">
@@ -183,25 +190,25 @@ const MovieDetails = () => {
         <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
           <div className="container mx-auto px-6 py-4">
             <Link 
-              to="/explore" 
+              to="/home" 
               className="inline-flex items-center text-white hover:text-yellow-400 transition-colors"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Voltar aos filmes
+              Voltar ao catálogo
             </Link>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="container mx-auto px-6 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Left Column - Poster */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
                 <img
-                  src={movie.poster_path}
+                  src={getImageUrl(movie.poster_path)}
                   alt={movie.title}
-                  className="w-full rounded-lg shadow-2xl"
+                  className="w-64 mx-auto rounded-lg shadow-2xl"
                 />
                 {/* Quick Actions */}
                 <div className="mt-6 space-y-3">
@@ -284,7 +291,7 @@ const MovieDetails = () => {
               </div>
             </div>
             {/* Right Column - Details */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-3 space-y-6">
               {/* Title and Basic Info */}
               <div>
                 <h1 className="text-4xl font-bold text-white mb-4">
@@ -309,37 +316,16 @@ const MovieDetails = () => {
                 </div>
               </div>
               {/* Description */}
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-black/60 backdrop-blur-sm border-white/20">
                 <CardHeader>
-                  <CardTitle className="text-white">Sinopse</CardTitle>
+                  <CardTitle className="text-white text-xl font-bold">Sinopse</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-white text-lg leading-relaxed font-medium">
                     {movie.description}
                   </p>
                 </CardContent>
               </Card>
-              {/* Stats (fake) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-white/5 border-white/10 text-center">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold text-yellow-400">8.5</div>
-                    <div className="text-sm text-gray-400">Nota Média</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-white/5 border-white/10 text-center">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold text-blue-400">1,234</div>
-                    <div className="text-sm text-gray-400">Avaliações</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-white/5 border-white/10 text-center">
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-bold text-green-400">89%</div>
-                    <div className="text-sm text-gray-400">Aprovação</div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </div>
         </main>
