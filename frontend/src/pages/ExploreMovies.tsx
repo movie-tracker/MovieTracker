@@ -11,8 +11,11 @@ const ExploreMovies = () => {
   const [selectedGenre, setSelectedGenre] = useState("");
 
   const { data, isLoading, error } = useQuery<MovieDTO[]>({
-    queryKey: ['movies'],
-    queryFn: movieService.getMovies,
+    queryKey: ['movies-explore'],
+    queryFn: async () => {
+      const page1 = await movieService.getMovies(1);
+      return page1.results;
+    },
   });
 
   // Garante que sempre será um array

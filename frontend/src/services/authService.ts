@@ -63,7 +63,7 @@ export const authService = {
   // Get user profile
   async getProfile(): Promise<UserDTO> {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.PROFILE), {
+    const response = await fetch(getApiUrl('/users/profile'), {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
       },
