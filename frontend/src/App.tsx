@@ -1,16 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
 
-import Header from '@/components/header/Header';
-import Sidebar from '@/components/sidebar/Sidebar';
 import ThemeProvider from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
 import useAuthentication from '@/context/AuthContext';
 import AuthProvider from '@/context/AuthContext/AuthProvider';
-import Dashboard from '@/pages/Dashboard/Dashboard';
-import FavoritesPage from '@/pages/Favorites';
 import Login from '@/pages/Login/Login';
-import WatchedPage from '@/pages/Watched';
+import Register from '@/pages/Register';
+import IntroPage from '@/pages/IntroPage';
+import HomePage from '@/pages/HomePage';
+import ExploreMovies from '@/pages/ExploreMovies';
+import MovieDetails from '@/pages/MovieDetails';
 
 import './App.css';
 
@@ -30,10 +30,10 @@ function Index() {
   const auth = useAuthentication();
 
   if (!auth.isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/intro" />;
   }
 
-  return <Navigate to="/dashboard" />;
+  return <Navigate to="/home" />;
 }
 
 function Layout() {
@@ -44,16 +44,10 @@ function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <div className="hidden sm:block w-64 bg-slate-800 text-white flex-shrink-0">
-        <Sidebar />
-      </div>
-      <div className="flex-1">
-        <Header />
-        <main className="p-0">
-          <Outlet />
-        </main>
-      </div>
+    <div className="min-h-screen">
+      <main>
+        <Outlet />
+      </main>
     </div>
   );
 }
@@ -67,20 +61,28 @@ const router = createBrowserRouter([
         element: <Index />,
       },
       {
-        path: '/dashboard',
-        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
+        path: '/intro',
+        element: <IntroPage />,
       },
       {
-        path: '/favorites',
-        element: <ProtectedRoute><FavoritesPage /></ProtectedRoute>,
+        path: '/home',
+        element: <ProtectedRoute><HomePage /></ProtectedRoute>,
       },
       {
-        path: '/watched',
-        element: <ProtectedRoute><WatchedPage /></ProtectedRoute>,
+        path: '/explore',
+        element: <ProtectedRoute><ExploreMovies /></ProtectedRoute>,
+      },
+      {
+        path: '/movie/:id',
+        element: <ProtectedRoute><MovieDetails /></ProtectedRoute>,
       },
       {
         path: '/login',
         element: <Login />,
+      },
+      {
+        path: '/register',
+        element: <Register />,
       },
     ],
   },

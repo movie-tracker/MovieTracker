@@ -12,7 +12,7 @@ import (
 )
 
 type IMovieRepository interface {
-	DiscoverMovies() (dto.Pagination[dto.TMDBMovieDTO], error)
+	DiscoverMovies(page int) (dto.Pagination[dto.TMDBMovieDTO], error)
 	GetByID(id int) (dto.TMDBMovieDTO, error)
 }
 
@@ -56,15 +56,33 @@ func (r *TMDBRepository) login() error {
 	return nil
 }
 
-func (r *TMDBRepository) DiscoverMovies() (dto.Pagination[dto.TMDBMovieDTO], error) {
+func (r *TMDBRepository) DiscoverMovies(page int) (dto.Pagination[dto.TMDBMovieDTO], error) {
 	var err error
 	var movies dto.Pagination[dto.TMDBMovieDTO]
+	
+	// Construir URL com parâmetros de paginação
 	endpoint, err := r.getEndpoint("/discover/movie")
 	if err != nil {
 		return movies, err
 	}
-
-	response, err := r.fetch("GET", endpoint, nil)
+	
+	// Adicionar parâmetros de query
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return movies, err
+	}
+	
+	q := u.Query()
+	q.Set("page", fmt.Sprintf("%d", page))
+	q.Set("sort_by", "popularity.desc") // Ordenar por popularidade
+	q.Set("include_adult", "false")     // Excluir conteúdo adulto
+	q.Set("include_video", "false")     // Excluir vídeos
+	q.Set("language", "pt-BR")          // Idioma português
+	q.Set("region", "BR")               // Região Brasil
+	
+	u.RawQuery = q.Encode()
+	
+	response, err := r.fetch("GET", u.String(), nil)
 	if err != nil {
 		return movies, err
 	}

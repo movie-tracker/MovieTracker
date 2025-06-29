@@ -5,11 +5,15 @@ import (
 )
 
 func MapFromTMDBToMovieDTO(tmdbMovie dto.TMDBMovieDTO) dto.MovieDTO {
+	year := ""
+	if len(tmdbMovie.ReleaseDate) >= 4 {
+		year = tmdbMovie.ReleaseDate[:4]
+	}
 	return dto.MovieDTO{
 		ID:         tmdbMovie.ID,
 		Title:      tmdbMovie.OriginalTitle,
 		PosterPath: tmdbMovie.PosterPath,
-		Year:       tmdbMovie.ReleaseDate[:4], // Extracting year from ReleaseDate
+		Year:       year,
 	}
 }
 
