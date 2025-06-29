@@ -32,11 +32,18 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // Reduzido de 400 para 300ms
   const [selectedStatus, setSelectedStatus] = useState<WatchListStatus | "all">("all");
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const queryClient = useQueryClient();
   const { ref, inView } = useInView({
     threshold: 0.1,
     rootMargin: "200px" // Aumentado para começar a carregar mais cedo
   });
+
+  // Adicione estes estados no início do componente HomePage:
+  const [addDialogMovieId, setAddDialogMovieId] = useState<number | null>(null);
+  const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus>("plan to watch");
+  const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
+  const [commentDialog, setCommentDialog] = useState("");
 
   // Query otimizada com busca local nos dados já carregados
   const {
@@ -89,15 +96,23 @@ const HomePage = () => {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Função para abrir o popover e resetar os campos
+  const openAddDialog = (movieId: number) => {
+    setAddDialogMovieId(movieId);
+    setSelectedStatusDialog("plan to watch");
+    setIsFavoriteDialog(false);
+    setCommentDialog("");
+  };
+
   // Mutation para adicionar filme à watchlist
   const addToWatchlistMutation = useMutation({
-    mutationFn: (movieId: number) =>
-      watchlistService.addToWatchlist({
-        movie_id: movieId,
-        status: 'plan to watch',
-        favorite: false,
-        rating: undefined
-      }),
+    mutationFn: (data: {
+      movie_id: number,
+      status: WatchListStatus,
+      favorite: boolean,
+      comments?: string,
+      rating?: number
+    }) => watchlistService.addToWatchlist(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] });
       toast.success('Filme adicionado à sua lista!');
@@ -115,18 +130,18 @@ const HomePage = () => {
   // Memoização dos filmes com status da watchlist
   const moviesWithStatus = useMemo(() => {
     return allMovies.map((movie: MovieDTO) => {
-      const watchlistItem = watchlist.find((w: WatchListDTO) => w.movie_id === movie.id);
-      return {
-        ...movie,
-        watchlistItem,
-        isInWatchlist: !!watchlistItem
-      };
-    });
+    const watchlistItem = watchlist.find((w: WatchListDTO) => w.movie_id === movie.id);
+    return {
+      ...movie,
+      watchlistItem,
+      isInWatchlist: !!watchlistItem
+    };
+  });
   }, [allMovies, watchlist]);
 
   // Filtragem otimizada com memoização
   const filteredMovies = useMemo(() => {
-    if (!debouncedSearchTerm && selectedStatus === "all") {
+    if (!debouncedSearchTerm && selectedStatus === "all" && !showOnlyFavorites) {
       return moviesWithStatus; // Retorna todos se não há filtros
     }
 
@@ -137,6 +152,11 @@ const HomePage = () => {
 
       if (!matchesSearch) return false;
 
+      // Filtro de favoritos
+      if (showOnlyFavorites) {
+        if (!movie.isInWatchlist || !movie.watchlistItem?.favorite) return false;
+      }
+
       // Filtro de status otimizado
       if (selectedStatus === "all") return true;
       if (selectedStatus === "unwatched") return !movie.isInWatchlist;
@@ -144,7 +164,7 @@ const HomePage = () => {
       
       return movie.watchlistItem?.status === selectedStatus;
     });
-  }, [moviesWithStatus, debouncedSearchTerm, selectedStatus]);
+  }, [moviesWithStatus, debouncedSearchTerm, selectedStatus, showOnlyFavorites]);
 
   // Estatísticas otimizadas com memoização
   const stats = useMemo(() => {
@@ -161,12 +181,12 @@ const HomePage = () => {
     return {
       currentPage: moviesOnCurrentPage, // Filmes na página atual
       showing: filteredMovies.length, // Filmes sendo exibidos (com filtros)
-      inWatchlist: watchlist.length,
+    inWatchlist: watchlist.length,
       watched: watchedItems.length,
       watching: watchingItems.length,
       planToWatch: planToWatchItems.length,
       favorites: favoriteItems.length,
-    };
+  };
   }, [allMovies.length, filteredMovies.length, watchlist, selectedStatus, debouncedSearchTerm]);
 
   const isLoading = moviesLoading || watchlistLoading;
@@ -208,9 +228,18 @@ const HomePage = () => {
       <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+            <button
+              className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent focus:outline-none hover:underline"
+              onClick={() => {
+                setSelectedStatus("all");
+                setShowOnlyFavorites(false);
+                setSearchTerm("");
+              }}
+              title="Mostrar todos os filmes"
+              style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+            >
               Catálogo de Filmes
-            </h1>
+            </button>
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -224,7 +253,10 @@ const HomePage = () => {
               </div>
               <select
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value as WatchListStatus | "all")}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value as WatchListStatus | "all");
+                  setShowOnlyFavorites(false); // Reset favoritos quando outro filtro é selecionado
+                }}
                 className="bg-slate-800 border border-white/20 text-white rounded-md px-3 py-2 focus:border-yellow-400 focus:outline-none"
               >
                 <option value="all">Todos os Filmes ({stats.showing})</option>
@@ -240,63 +272,57 @@ const HomePage = () => {
 
       {/* Stats - Estatísticas aprimoradas */}
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-8">
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">{stats.currentPage}</div>
-                <div className="text-sm text-gray-400">Filmes na Página</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10 border-yellow-400/30">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{stats.showing}</div>
-                <div className="text-sm text-gray-400">Sendo Exibidos</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">{stats.inWatchlist}</div>
-                <div className="text-sm text-gray-400">Na Minha Lista</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">{stats.watched}</div>
-                <div className="text-sm text-gray-400">Assistidos</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">{stats.watching}</div>
-                <div className="text-sm text-gray-400">Assistindo</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">{stats.planToWatch}</div>
-                <div className="text-sm text-gray-400">Quero Assistir</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-400">{stats.favorites}</div>
-                <div className="text-sm text-gray-400">Favoritos</div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("all"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Mostrar todos os filmes">
+            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "all" && !showOnlyFavorites ? 'ring-2 ring-yellow-400' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">{allMovies.length}</div>
+                  <div className="text-sm text-gray-400">Filmes</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watched"); setShowOnlyFavorites(false); }} title="Filmes assistidos">
+            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "watched" ? 'ring-2 ring-green-400' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{stats.watched}</div>
+                  <div className="text-sm text-gray-400">Assistidos</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watching"); setShowOnlyFavorites(false); }} title="Filmes assistindo">
+            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "watching" ? 'ring-2 ring-yellow-400' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{stats.watching}</div>
+                  <div className="text-sm text-gray-400">Assistindo</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("plan to watch"); setShowOnlyFavorites(false); }} title="Filmes que quero assistir">
+            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "plan to watch" ? 'ring-2 ring-purple-400' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">{stats.planToWatch}</div>
+                  <div className="text-sm text-gray-400">Quero Assistir</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setShowOnlyFavorites(true); setSelectedStatus("all"); }} title="Filmes favoritos">
+            <Card className={`bg-white/5 border-white/10 ${showOnlyFavorites ? 'ring-2 ring-red-400' : ''}`}>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-400">{stats.favorites}</div>
+                  <div className="text-sm text-gray-400">Favoritos</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
         </div>
       </div>
 
@@ -304,97 +330,169 @@ const HomePage = () => {
       <main className="container mx-auto px-6 pb-8">
         {filteredMovies.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {filteredMovies.map((movie, index) => (
                 <Card key={`${movie.id}-${index}`} className="group bg-white/5 border-white/10 hover:border-yellow-400/50 transition-all duration-300 overflow-hidden">
-                  <div className="relative">
-                    <img
-                      src={getPosterUrl(movie.poster_path)}
-                      alt={movie.title}
-                      className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+                <div className="relative">
+                  <img
+                    src={getPosterUrl(movie.poster_path)}
+                    alt={movie.title}
+                    className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy" // Lazy loading para melhor performance
                       onError={(e) => {
                         e.currentTarget.src = "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
                       }}
-                    />
-                    
-                    {/* Status Badge */}
-                    {movie.isInWatchlist && movie.watchlistItem && (
-                      <div className="absolute top-2 left-2">
-                        <Badge 
-                          className={`${
-                            movie.watchlistItem.status === 'watched' ? 'bg-green-600' :
-                            movie.watchlistItem.status === 'watching' ? 'bg-yellow-600' :
-                            movie.watchlistItem.status === 'plan to watch' ? 'bg-blue-600' :
-                            'bg-red-600'
-                          } text-white border-0`}
-                        >
-                          {movie.watchlistItem.status === 'watched' ? 'Assistido' :
-                           movie.watchlistItem.status === 'watching' ? 'Assistindo' :
-                           movie.watchlistItem.status === 'plan to watch' ? 'Quero Assistir' :
-                           'Não Assistido'}
-                        </Badge>
-                      </div>
-                    )}
+                  />
+                  
+                  {/* Status Badge */}
+                  {movie.isInWatchlist && movie.watchlistItem && (
+                    <div className="absolute top-2 left-2 z-20">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStatus(movie.watchlistItem!.status);
+                          setShowOnlyFavorites(false);
+                        }}
+                        className={`${
+                          movie.watchlistItem.status === 'watched' ? 'bg-green-600 hover:bg-green-700' :
+                          movie.watchlistItem.status === 'watching' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                          movie.watchlistItem.status === 'plan to watch' ? 'bg-blue-600 hover:bg-blue-700' :
+                          'bg-red-600 hover:bg-red-700'
+                        } text-white border-0 text-xs px-2 py-1 h-6`}
+                      >
+                        {movie.watchlistItem.status === 'watched' ? 'Assistido' :
+                         movie.watchlistItem.status === 'watching' ? 'Assistindo' :
+                         movie.watchlistItem.status === 'plan to watch' ? 'Quero Assistir' :
+                         'Não Assistido'}
+                      </Button>
+                    </div>
+                  )}
 
-                    {/* Favorite Badge */}
-                    {movie.isInWatchlist && movie.watchlistItem?.favorite && (
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-red-600 text-white border-0">
-                          <Heart className="h-3 w-3 mr-1 fill-current" />
-                          Favorito
-                        </Badge>
-                      </div>
-                    )}
+                  {/* Favorite Badge */}
+                  {movie.isInWatchlist && movie.watchlistItem?.favorite && (
+                    <div className="absolute top-2 right-2 z-20">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setShowOnlyFavorites(true);
+                          setSelectedStatus("all");
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white border-0 text-xs px-2 py-1 h-6"
+                      >
+                        <Heart className="h-3 w-3 mr-1 fill-current" />
+                        Favorito
+                      </Button>
+                    </div>
+                  )}
 
-                    {/* Rating Badge */}
-                    {movie.isInWatchlist && movie.watchlistItem?.rating && (
-                      <div className="absolute top-12 right-2">
-                        <Badge className="bg-yellow-600 text-white border-0">
-                          <Star className="h-3 w-3 mr-1 fill-current" />
-                          {movie.watchlistItem.rating}/5
-                        </Badge>
-                      </div>
-                    )}
+                  {/* Rating Badge */}
+                  {movie.isInWatchlist && movie.watchlistItem?.rating && (
+                    <div className="absolute top-12 right-2 z-20">
+                      <Badge className="bg-yellow-600 text-white border-0">
+                        <Star className="h-3 w-3 mr-1 fill-current" />
+                        {movie.watchlistItem.rating}/5
+                      </Badge>
+                    </div>
+                  )}
 
-                    {/* Add to Watchlist Button */}
-                    {!movie.isInWatchlist && (
-                      <div className="absolute top-2 right-2">
-                        <Button
-                          size="sm"
-                          onClick={() => addToWatchlistMutation.mutate(movie.id)}
-                          disabled={addToWatchlistMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white border-0"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                    )}
+                  {/* Add to Watchlist Button */}
+                  {!movie.isInWatchlist && (
+                      <div className="absolute top-2 right-2 flex flex-col items-end z-20">
+                      <Button
+                        size="sm"
+                          onClick={() => openAddDialog(movie.id)}
+                        disabled={addToWatchlistMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white border-0 z-20"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Adicionar
+                      </Button>
+                        {/* Popover para adicionar à watchlist */}
+                        {addDialogMovieId === movie.id && (
+                          <div className="z-50 mt-2 w-64 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-3 animate-fade-in absolute right-0 top-10">
+                            <div className="mb-2">
+                              <label className="block text-white text-xs mb-1">Status:</label>
+                              <select
+                                className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
+                                value={selectedStatusDialog}
+                                onChange={e => setSelectedStatusDialog(e.target.value as WatchListStatus)}
+                              >
+                                <option value="plan to watch">Quero Assistir</option>
+                                <option value="watching">Assistindo</option>
+                                <option value="watched">Assistido</option>
+                              </select>
+                            </div>
+                            <div className="mb-2 flex items-center">
+                              <input
+                                id={`fav-${movie.id}`}
+                                type="checkbox"
+                                checked={isFavoriteDialog}
+                                onChange={e => setIsFavoriteDialog(e.target.checked)}
+                                className="mr-2 accent-red-600"
+                              />
+                              <label htmlFor={`fav-${movie.id}`} className="text-white text-xs cursor-pointer flex items-center">
+                                <Heart className="h-3 w-3 mr-1" /> Favorito
+                              </label>
+                            </div>
+                            <div className="mb-2">
+                              <label className="block text-white text-xs mb-1">Comentário:</label>
+                              <textarea
+                                className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
+                                value={commentDialog}
+                                onChange={e => setCommentDialog(e.target.value)}
+                                rows={2}
+                                maxLength={100}
+                                placeholder="Comentário (opcional)"
+                              />
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-3">
+                              <Button size="sm" variant="ghost" onClick={() => setAddDialogMovieId(null)} className="text-gray-300 hover:text-white text-xs px-2 py-1">Cancelar</Button>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
+                                disabled={addToWatchlistMutation.isPending}
+                                onClick={() => {
+                                  addToWatchlistMutation.mutate({
+                                    movie_id: movie.id,
+                                    status: selectedStatusDialog,
+                                    favorite: isFavoriteDialog,
+                                    comments: commentDialog,
+                                    rating: undefined
+                                  });
+                                  setAddDialogMovieId(null);
+                                }}
+                              >
+                                {addToWatchlistMutation.isPending ? 'Salvando...' : 'Salvar'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  )}
 
-                    {/* Overlay com informações */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div className="text-center text-white p-4">
+                  {/* Overlay com informações */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                    <div className="text-center text-white p-4">
                         <h3 className="font-bold text-lg mb-2">{movie.title || 'Título não disponível'}</h3>
                         <p className="text-sm mb-2">{movie.year || 'Ano não disponível'}</p>
                         <p className="text-sm mb-3">{movie.genre?.length > 0 ? movie.genre.join(', ') : 'Gênero não disponível'}</p>
-                        <Link
-                          to={`/movie/${movie.id}`}
-                          className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                        >
-                          Ver Detalhes
-                        </Link>
-                      </div>
+                      <Link
+                        to={`/movie/${movie.id}`}
+                        className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                      >
+                        Ver Detalhes
+                      </Link>
                     </div>
                   </div>
+                </div>
 
-                  <CardContent className="p-4">
+                <CardContent className="p-4">
                     <h3 className="font-semibold text-white text-sm mb-1 truncate">{movie.title || 'Título não disponível'}</h3>
                     <p className="text-gray-400 text-xs">{movie.year || 'N/A'} • {movie.duration || 'N/A'}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
             {/* Elemento de trigger para infinite scroll */}
             <div ref={ref} className="h-20 flex items-center justify-center mt-8">
