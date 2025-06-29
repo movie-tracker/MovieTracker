@@ -20,7 +20,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const auth = useAuthentication();
 
   if (!auth.isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -30,10 +30,10 @@ function Index() {
   const auth = useAuthentication();
 
   if (!auth.isAuthenticated) {
-    return <Navigate to="/intro" />;
+    return <Navigate to="/intro" replace />;
   }
 
-  return <Navigate to="/home" />;
+  return <Navigate to="/home" replace />;
 }
 
 function Layout() {

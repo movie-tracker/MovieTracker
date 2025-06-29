@@ -8,15 +8,23 @@ import AuthContext, { IAuthContext } from './auth.context';
 
 function AuthProvider({ children }: { children?: React.ReactNode }) {
   const [authToken, setAuthToken] = useLocalStorage('authToken');
-  const isAuthenticated = !!authToken;
-
   const queryClient = useQueryClient();
 
   const profileQuery = useQuery<UserDTO, Error>({
     queryKey: ['profile'],
     queryFn: async () => authService.getProfile(),
-    enabled: isAuthenticated,
+    enabled: !!authToken,
+    retry: false,
   });
+
+  // Se há token mas a query falhou (token inválido), limpar o token
+  if (authToken && profileQuery.error) {
+    setAuthToken(null);
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
+  }
+
+  // Só considerar autenticado se há token E não há erro na query
+  const isAuthenticated = !!authToken && !profileQuery.error;
 
   async function login(username: string, password: string) {
     const { authToken: token } = await authService.login({ username, password });

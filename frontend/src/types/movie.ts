@@ -41,8 +41,8 @@ export interface WatchListCreateDTO {
   movie_id: number;
   status?: WatchListStatus;
   favorite?: boolean;
-  comments?: string;
-  rating?: number;
+  comments?: string | null;
+  rating?: number | null;
 }
 
 export interface UpdateStatusRequestDTO {

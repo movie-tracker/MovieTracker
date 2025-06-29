@@ -44,7 +44,7 @@ func (c *AuthController) Login(ctx *gin.Context) error {
 	var loginDTO dto.LoginRequestDTO
 	var err error
 
-	if err = ctx.ShouldBind(&loginDTO); err != nil {
+	if err = ctx.ShouldBindJSON(&loginDTO); err != nil {
 		e := utils.NewValidationError("error.auth.invalid_request", err)
 		return e
 	}

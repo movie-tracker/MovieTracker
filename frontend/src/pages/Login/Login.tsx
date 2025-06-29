@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useAuthentication from '@/context/AuthContext';
-import { isApiError } from '@/utils/errors';
+import { useState } from 'react';
 
 const loginSchema = z.object({
   username: z.string({ required_error: 'validation.required' }).nonempty('validation.required'),
@@ -22,28 +22,26 @@ type FormData = z.infer<typeof loginSchema>;
 function LoginPage() {
   const { t } = useTranslation();
   const auth = useAuthentication();
+  const [loginError, setLoginError] = useState<string | null>(null);
   const form = useForm<FormData>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (values: FormData) => {
-    await auth.login(values.username, values.password).catch((error) => {
-      if (isApiError(error)) {
-        if (error.fields) {
-          Object.entries(error.fields).forEach(([key, value]) => {
-            form.setError(key as keyof FormData, {
-              message: t(`validation.${value}`),
-            });
-          });
-        } else {
-          form.setError('root', {
-            message: t(`api.${error.message}`),
-          });
-        }
+    setLoginError(null);
+    try {
+      await auth.login(values.username, values.password);
+    } catch (error: any) {
+      let msg = error.message || 'Erro inesperado ao fazer login. Tente novamente.';
+      toast.error(msg);
+      if (msg.includes('Usuário ou senha incorretos') || msg.includes('invalid_credentials')) {
+        setLoginError('Usuário ou senha incorretos.');
+        form.setValue('password', '');
+        form.setFocus('password');
       } else {
-        toast.error(error.message);
+        setLoginError(msg);
       }
-    });
+    }
   };
 
   const isLoading = form.formState.isSubmitting;
@@ -81,10 +79,12 @@ function LoginPage() {
                     <Input type="password" placeholder={t('login.passwordPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
+                  {loginError && (
+                    <div className="text-red-500 text-xs mt-2">{loginError}</div>
+                  )}
                 </FormItem>
               )}
             />
-            <FormMessage>{form.formState.errors.root?.message}</FormMessage>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -111,9 +111,6 @@ function LoginPage() {
           </form>
         </Form>
         <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-          <Link to="/forgot-password" className="hover:underline">
-            {t('login.forgotPassword')}
-          </Link>
           <Link to="/register" className="hover:underline">
             {t('login.createAccount')}
           </Link>

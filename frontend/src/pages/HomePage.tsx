@@ -1,16 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
-import { Search, Star, Heart, Plus, Pencil } from "lucide-react";
+import { Search, Star, Heart, Plus, Pencil, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { WatchListDTO, WatchListStatus, MovieDTO } from "@/types/movie";
+import { WatchListDTO, WatchListStatus, MovieDTO, WatchListCreateDTO } from "@/types/movie";
 import { watchlistService } from "@/services/watchlistService";
 import { movieService } from "@/services/movieService";
 import { toast } from "sonner";
+import useAuthentication from "@/context/AuthContext";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -29,6 +30,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 const HomePage = () => {
+  const auth = useAuthentication();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // Reduzido de 400 para 300ms
   const [selectedStatus, setSelectedStatus] = useState<WatchListStatus | "all">("all");
@@ -43,7 +45,7 @@ const HomePage = () => {
   const [addDialogMovieId, setAddDialogMovieId] = useState<number | null>(null);
   const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus>("plan to watch");
   const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
-  const [commentDialog, setCommentDialog] = useState("");
+  const [commentDialog, setCommentDialog] = useState<string>("");
   const [ratingDialog, setRatingDialog] = useState<number | null>(null);
 
   // Query otimizada com busca local nos dados já carregados
@@ -118,13 +120,7 @@ const HomePage = () => {
 
   // Mutation para adicionar filme à watchlist
   const addToWatchlistMutation = useMutation({
-    mutationFn: (data: {
-      movie_id: number,
-      status: WatchListStatus,
-      favorite: boolean,
-      comments?: string,
-      rating?: number
-    }) => watchlistService.addToWatchlist(data),
+    mutationFn: (data: WatchListCreateDTO) => watchlistService.addToWatchlist(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] });
       toast.success('Filme adicionado à sua lista!');
@@ -181,8 +177,8 @@ const HomePage = () => {
       const requestData = {
         status: data.status,
         favorite: data.favorite,
-        comments: data.comments || null,
-        rating: data.rating || null
+        comments: data.comments,
+        rating: data.rating
       };
       console.log('📤 Request data sendo enviado:', requestData);
       console.log('📤 Request data JSON:', JSON.stringify(requestData));
@@ -308,18 +304,21 @@ const HomePage = () => {
       <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <button
-              className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent focus:outline-none hover:underline"
-              onClick={() => {
-                setSelectedStatus("all");
-                setShowOnlyFavorites(false);
-                setSearchTerm("");
-              }}
-              title="Mostrar todos os filmes"
-              style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-            >
-              Catálogo de Filmes
-            </button>
+            <div className="flex flex-col">
+              <button
+                className="text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent focus:outline-none hover:underline"
+                onClick={() => {
+                  setSelectedStatus("all");
+                  setShowOnlyFavorites(false);
+                  setSearchTerm("");
+                }}
+                title="Mostrar todos os filmes"
+                style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+              >
+                Catálogo de Filmes
+              </button>
+              <span className="text-white text-sm mt-1">Olá, {auth.user?.name || auth.user?.username || 'usuário'}!</span>
+            </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -339,12 +338,22 @@ const HomePage = () => {
                 }}
                 className="bg-slate-800 border border-white/20 text-white rounded-md px-3 py-2 focus:border-yellow-400 focus:outline-none"
               >
-                <option value="all">Todos os Filmes ({stats.showing})</option>
+                <option value="all">Todos os Filmes</option>
                 <option value="unwatched">Não na Lista</option>
                 <option value="watched">Assistidos</option>
                 <option value="watching">Assistindo</option>
                 <option value="plan to watch">Quero Assistir</option>
               </select>
+              <Button
+                onClick={() => auth.logout()}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-red-600/20 hover:text-red-400 border border-white/20 hover:border-red-400/50 transition-all duration-200"
+                title="Sair da conta"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
             </div>
           </div>
         </div>
@@ -488,7 +497,7 @@ const HomePage = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="bg-white/20 hover:bg-yellow-400/30 text-white border-0 p-1 h-6 w-6"
+                        className="bg-white hover:bg-gray-200 text-black border-0 p-1 h-7 w-7 shadow-lg ring-2 ring-gray-300 focus:ring-4 focus:ring-gray-400"
                         title="Editar detalhes"
                         onClick={() => {
                           openAddDialog(movie);
@@ -541,10 +550,10 @@ const HomePage = () => {
                         <textarea
                           className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
                           value={commentDialog}
-                          onChange={e => setCommentDialog(e.target.value)}
+                          onChange={e => setCommentDialog(e.target.value === "" ? "" : e.target.value)}
                           rows={2}
-                          maxLength={100}
                           placeholder="Comentário (opcional)"
+                          maxLength={100}
                         />
                       </div>
                       <div className="mb-2">
@@ -583,36 +592,19 @@ const HomePage = () => {
                                 movie_id: movie.id,
                                 status: selectedStatusDialog,
                                 favorite: isFavoriteDialog,
-                                comments: commentDialog.trim() ? commentDialog.trim() : undefined,
-                                rating: ratingDialog ?? undefined
+                                comments: commentDialog.trim() || null,
+                                rating: ratingDialog
                               });
                             } else {
                               // Atualizar item existente
-                              const statusChanged = selectedStatusDialog !== movie.watchlistItem.status;
-                              const favoriteChanged = isFavoriteDialog !== !!movie.watchlistItem.favorite;
-                              const hasComments = commentDialog.trim().length > 0;
-                              const ratingChanged = ratingDialog !== (typeof movie.watchlistItem.rating === 'number' ? movie.watchlistItem.rating : null);
-
-                              if (statusChanged && !favoriteChanged && !hasComments && !ratingChanged) {
-                                updateStatusMutation.mutate({
-                                  movieId: movie.id,
-                                  status: selectedStatusDialog
-                                });
-                              } else if (favoriteChanged && !statusChanged && !hasComments && !ratingChanged) {
-                                toggleFavoriteMutation.mutate({
-                                  movieId: movie.id,
-                                  favorite: isFavoriteDialog
-                                });
-                              } else if (hasComments || ratingChanged || (statusChanged && favoriteChanged)) {
-                                const updateData = {
-                                  movieId: movie.id,
-                                  status: selectedStatusDialog,
-                                  favorite: isFavoriteDialog,
-                                  comments: commentDialog.trim() ? commentDialog.trim() : undefined,
-                                  rating: ratingDialog ?? undefined
-                                };
-                                updateWatchlistMutation.mutate(updateData);
-                              }
+                              const requestData = {
+                                movieId: movie.id,
+                                status: selectedStatusDialog,
+                                favorite: isFavoriteDialog,
+                                comments: commentDialog.trim() || null,
+                                rating: ratingDialog
+                              };
+                              updateWatchlistMutation.mutate(requestData);
                             }
                             setAddDialogMovieId(null);
                           }}
@@ -643,7 +635,6 @@ const HomePage = () => {
                     <div className="text-center text-white p-4">
                         <h3 className="font-bold text-lg mb-2">{movie.title || 'Título não disponível'}</h3>
                         <p className="text-sm mb-2">{movie.year || 'Ano não disponível'}</p>
-                        <p className="text-sm mb-3">{movie.genre?.length > 0 ? movie.genre.join(', ') : 'Gênero não disponível'}</p>
                       <Link
                         to={`/movie/${movie.id}`}
                         className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
