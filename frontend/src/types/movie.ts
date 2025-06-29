@@ -59,7 +59,7 @@ export interface UpdateRatingRequestDTO {
 
 export interface UpdateWatchlistRequestDTO {
   status?: WatchListStatus;
-  favorite?: boolean;
-  comments?: string;
-  rating?: number;
+  favorite?: boolean | null;
+  comments?: string | null;
+  rating?: number | null;
 }

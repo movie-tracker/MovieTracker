@@ -88,14 +88,17 @@ const HomePage = () => {
 
   // Efeito otimizado para carregar próxima página
   useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    // Desabilitar infinite scroll quando há filtros ativos
+    const hasActiveFilters = selectedStatus !== "all" || debouncedSearchTerm || showOnlyFavorites;
+    
+    if (inView && hasNextPage && !isFetchingNextPage && !hasActiveFilters) {
       // Debounce do carregamento para evitar múltiplas chamadas
       const timer = setTimeout(() => {
         fetchNextPage();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, selectedStatus, debouncedSearchTerm, showOnlyFavorites]);
 
   // Função para abrir o popover e resetar os campos
   const openAddDialog = (movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
@@ -668,7 +671,12 @@ const HomePage = () => {
                 </div>
               )}
               {!hasNextPage && allMovies.length > 0 && (
-                <span className="text-gray-400">Você chegou ao final! 🎬</span>
+                <span className="text-gray-400">
+                  {selectedStatus !== "all" || debouncedSearchTerm || showOnlyFavorites 
+                    ? `Mostrando ${filteredMovies.length} filmes encontrados` 
+                    : "Você chegou ao final! 🎬"
+                  }
+                </span>
               )}
             </div>
           </>
