@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
-import { Search, Star, Heart, Plus } from "lucide-react";
+import { Search, Star, Heart, Plus, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,7 @@ const HomePage = () => {
   const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus>("plan to watch");
   const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
   const [commentDialog, setCommentDialog] = useState("");
+  const [ratingDialog, setRatingDialog] = useState<number | null>(null);
 
   // Query otimizada com busca local nos dados já carregados
   const {
@@ -54,7 +55,7 @@ const HomePage = () => {
     isLoading: moviesLoading,
     error: moviesError,
   } = useInfiniteQuery({
-    queryKey: ["movies"],
+    queryKey: ["movies-infinite"],
     queryFn: async ({ pageParam = 1 }) => {
       console.log(`Buscando página ${pageParam}...`);
       try {
@@ -97,11 +98,19 @@ const HomePage = () => {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Função para abrir o popover e resetar os campos
-  const openAddDialog = (movieId: number) => {
-    setAddDialogMovieId(movieId);
-    setSelectedStatusDialog("plan to watch");
-    setIsFavoriteDialog(false);
-    setCommentDialog("");
+  const openAddDialog = (movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
+    setAddDialogMovieId(movie.id);
+    if (movie.isInWatchlist && movie.watchlistItem) {
+      setSelectedStatusDialog(movie.watchlistItem.status);
+      setIsFavoriteDialog(!!movie.watchlistItem.favorite);
+      setCommentDialog(movie.watchlistItem.comments || "");
+      setRatingDialog(typeof movie.watchlistItem.rating === 'number' ? movie.watchlistItem.rating : null);
+    } else {
+      setSelectedStatusDialog("plan to watch");
+      setIsFavoriteDialog(false);
+      setCommentDialog("");
+      setRatingDialog(null);
+    }
   };
 
   // Mutation para adicionar filme à watchlist
@@ -119,6 +128,74 @@ const HomePage = () => {
     },
     onError: (error) => {
       toast.error('Erro ao adicionar filme: ' + (error as Error).message);
+    }
+  });
+
+  // Mutation para atualizar status do filme (PATCH /watchlist/:id/status)
+  const updateStatusMutation = useMutation({
+    mutationFn: (data: { movieId: number, status: WatchListStatus }) => {
+      console.log('🔄 Atualizando status do filme:', data);
+      return watchlistService.updateStatus(data.movieId, data.status);
+    },
+    onSuccess: (data) => {
+      console.log('✅ Status atualizado com sucesso:', data);
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      toast.success('Status atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('❌ Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status: ' + (error as Error).message);
+    }
+  });
+
+  // Mutation para toggle favorito (PATCH /watchlist/:id/favorite)
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: (data: { movieId: number, favorite: boolean }) => {
+      console.log('🔄 Toggle favorito do filme:', data);
+      return watchlistService.toggleFavorite(data.movieId, data.favorite);
+    },
+    onSuccess: (data) => {
+      console.log('✅ Favorito atualizado com sucesso:', data);
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      toast.success(data.favorite ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!');
+    },
+    onError: (error) => {
+      console.error('❌ Erro ao atualizar favorito:', error);
+      toast.error('Erro ao atualizar favorito: ' + (error as Error).message);
+    }
+  });
+
+  // Mutation para atualizar filme na watchlist (mantida para compatibilidade com comentários e rating)
+  const updateWatchlistMutation = useMutation({
+    mutationFn: (data: {
+      movieId: number,
+      status: WatchListStatus,
+      favorite: boolean,
+      comments?: string | null,
+      rating?: number | null
+    }) => {
+      console.log('🔄 Atualizando watchlist item:', data);
+      const requestData = {
+        status: data.status,
+        favorite: data.favorite,
+        comments: data.comments || null,
+        rating: data.rating || null
+      };
+      console.log('📤 Request data sendo enviado:', requestData);
+      console.log('📤 Request data JSON:', JSON.stringify(requestData));
+      return watchlistService.updateWatchlistItem(data.movieId, requestData);
+    },
+    onSuccess: (data) => {
+      console.log('✅ Watchlist atualizada com sucesso:', data);
+      console.log('🔄 Invalidando cache da watchlist...');
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      // Força um refetch imediato
+      queryClient.refetchQueries({ queryKey: ['watchlist'] });
+      toast.success('Lista atualizada com sucesso!');
+    },
+    onError: (error) => {
+      console.error('❌ Erro ao atualizar watchlist:', error);
+      toast.error('Erro ao atualizar lista: ' + (error as Error).message);
     }
   });
 
@@ -350,9 +427,23 @@ const HomePage = () => {
                       <Button
                         size="sm"
                         onClick={() => {
-                          setSelectedStatus(movie.watchlistItem!.status);
-                          setShowOnlyFavorites(false);
+                          if (!movie.watchlistItem) return;
+                          const currentStatus = movie.watchlistItem.status;
+                          let newStatus: WatchListStatus;
+                          if (currentStatus === 'plan to watch') {
+                            newStatus = 'watching';
+                          } else if (currentStatus === 'watching') {
+                            newStatus = 'watched';
+                          } else {
+                            newStatus = 'plan to watch';
+                          }
+                          console.log('[PATCH STATUS] movieId:', movie.id, 'novo status:', newStatus);
+                          updateStatusMutation.mutate({
+                            movieId: movie.id,
+                            status: newStatus
+                          });
                         }}
+                        disabled={updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
                         className={`${
                           movie.watchlistItem.status === 'watched' ? 'bg-green-600 hover:bg-green-700' :
                           movie.watchlistItem.status === 'watching' ? 'bg-yellow-600 hover:bg-yellow-700' :
@@ -369,18 +460,38 @@ const HomePage = () => {
                   )}
 
                   {/* Favorite Badge */}
-                  {movie.isInWatchlist && movie.watchlistItem?.favorite && (
-                    <div className="absolute top-2 right-2 z-20">
+                  {movie.isInWatchlist && movie.watchlistItem && (
+                    <div className="absolute top-2 right-2 z-20 flex gap-2">
                       <Button
                         size="sm"
                         onClick={() => {
-                          setShowOnlyFavorites(true);
-                          setSelectedStatus("all");
+                          if (!movie.watchlistItem) return;
+                          console.log('[PATCH FAVORITE] movieId:', movie.id, 'novo favorito:', !movie.watchlistItem.favorite);
+                          toggleFavoriteMutation.mutate({
+                            movieId: movie.id,
+                            favorite: !movie.watchlistItem.favorite
+                          });
                         }}
-                        className="bg-red-600 hover:bg-red-700 text-white border-0 text-xs px-2 py-1 h-6"
+                        disabled={updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
+                        className={`${
+                          movie.watchlistItem.favorite 
+                            ? 'bg-red-600 hover:bg-red-700' 
+                            : 'bg-gray-600 hover:bg-gray-700'
+                        } text-white border-0 text-xs px-2 py-1 h-6`}
                       >
-                        <Heart className="h-3 w-3 mr-1 fill-current" />
-                        Favorito
+                        <Heart className={`h-3 w-3 mr-1 ${movie.watchlistItem.favorite ? 'fill-current' : ''}`} />
+                        {movie.watchlistItem.favorite ? 'Favorito' : 'Favoritar'}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="bg-white/20 hover:bg-yellow-400/30 text-white border-0 p-1 h-6 w-6"
+                        title="Editar detalhes"
+                        onClick={() => {
+                          openAddDialog(movie);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -395,78 +506,132 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Add/Edit Watchlist Popover */}
+                  {addDialogMovieId === movie.id && (
+                    <div className="z-50 w-64 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-3 animate-fade-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="mb-2">
+                        <label className="block text-white text-xs mb-1">Status:</label>
+                        <select
+                          className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
+                          value={selectedStatusDialog}
+                          onChange={e => setSelectedStatusDialog(e.target.value as WatchListStatus)}
+                        >
+                          <option value="plan to watch">Quero Assistir</option>
+                          <option value="watching">Assistindo</option>
+                          <option value="watched">Assistido</option>
+                        </select>
+                      </div>
+                      <div className="mb-2 flex items-center">
+                        <input
+                          id={`fav-${movie.id}`}
+                          type="checkbox"
+                          checked={isFavoriteDialog}
+                          onChange={e => setIsFavoriteDialog(e.target.checked)}
+                          className="mr-2 accent-red-600"
+                        />
+                        <label htmlFor={`fav-${movie.id}`} className="text-white text-xs cursor-pointer flex items-center">
+                          <Heart className="h-3 w-3 mr-1" /> Favorito
+                        </label>
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-white text-xs mb-1">Comentário:</label>
+                        <textarea
+                          className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
+                          value={commentDialog}
+                          onChange={e => setCommentDialog(e.target.value)}
+                          rows={2}
+                          maxLength={100}
+                          placeholder="Comentário (opcional)"
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-white text-xs mb-1">Nota:</label>
+                        <div className="flex items-center space-x-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setRatingDialog(ratingDialog === star ? null : star)}
+                              className="text-2xl hover:scale-110 transition-transform duration-200 focus:outline-none"
+                            >
+                              <Star 
+                                className={`h-6 w-6 ${
+                                  ratingDialog && star <= ratingDialog 
+                                    ? 'fill-yellow-400 text-yellow-400' 
+                                    : 'text-gray-400 hover:text-yellow-300'
+                                }`} 
+                              />
+                            </button>
+                          ))}
+                          {ratingDialog && (
+                            <span className="text-white text-sm ml-2">({ratingDialog}/5)</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2 mt-3">
+                        <Button size="sm" variant="ghost" onClick={() => setAddDialogMovieId(null)} className="text-gray-300 hover:text-white text-xs px-2 py-1">Cancelar</Button>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
+                          disabled={addToWatchlistMutation.isPending || updateWatchlistMutation.isPending || updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
+                          onClick={() => {
+                            if (!movie.isInWatchlist || !movie.watchlistItem) {
+                              addToWatchlistMutation.mutate({
+                                movie_id: movie.id,
+                                status: selectedStatusDialog,
+                                favorite: isFavoriteDialog,
+                                comments: commentDialog.trim() ? commentDialog.trim() : undefined,
+                                rating: ratingDialog ?? undefined
+                              });
+                            } else {
+                              // Atualizar item existente
+                              const statusChanged = selectedStatusDialog !== movie.watchlistItem.status;
+                              const favoriteChanged = isFavoriteDialog !== !!movie.watchlistItem.favorite;
+                              const hasComments = commentDialog.trim().length > 0;
+                              const ratingChanged = ratingDialog !== (typeof movie.watchlistItem.rating === 'number' ? movie.watchlistItem.rating : null);
+
+                              if (statusChanged && !favoriteChanged && !hasComments && !ratingChanged) {
+                                updateStatusMutation.mutate({
+                                  movieId: movie.id,
+                                  status: selectedStatusDialog
+                                });
+                              } else if (favoriteChanged && !statusChanged && !hasComments && !ratingChanged) {
+                                toggleFavoriteMutation.mutate({
+                                  movieId: movie.id,
+                                  favorite: isFavoriteDialog
+                                });
+                              } else if (hasComments || ratingChanged || (statusChanged && favoriteChanged)) {
+                                const updateData = {
+                                  movieId: movie.id,
+                                  status: selectedStatusDialog,
+                                  favorite: isFavoriteDialog,
+                                  comments: commentDialog.trim() ? commentDialog.trim() : undefined,
+                                  rating: ratingDialog ?? undefined
+                                };
+                                updateWatchlistMutation.mutate(updateData);
+                              }
+                            }
+                            setAddDialogMovieId(null);
+                          }}
+                        >
+                          {(addToWatchlistMutation.isPending || updateWatchlistMutation.isPending || updateStatusMutation.isPending || toggleFavoriteMutation.isPending) ? 'Salvando...' : 'Salvar'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Add to Watchlist Button */}
                   {!movie.isInWatchlist && (
                       <div className="absolute top-2 right-2 flex flex-col items-end z-20">
                       <Button
                         size="sm"
-                          onClick={() => openAddDialog(movie.id)}
-                        disabled={addToWatchlistMutation.isPending}
+                          onClick={() => openAddDialog(movie)}
+                        disabled={addToWatchlistMutation.isPending || updateWatchlistMutation.isPending || updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
                         className="bg-green-600 hover:bg-green-700 text-white border-0 z-20"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Adicionar
                       </Button>
-                        {/* Popover para adicionar à watchlist */}
-                        {addDialogMovieId === movie.id && (
-                          <div className="z-50 mt-2 w-64 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-3 animate-fade-in absolute right-0 top-10">
-                            <div className="mb-2">
-                              <label className="block text-white text-xs mb-1">Status:</label>
-                              <select
-                                className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
-                                value={selectedStatusDialog}
-                                onChange={e => setSelectedStatusDialog(e.target.value as WatchListStatus)}
-                              >
-                                <option value="plan to watch">Quero Assistir</option>
-                                <option value="watching">Assistindo</option>
-                                <option value="watched">Assistido</option>
-                              </select>
-                            </div>
-                            <div className="mb-2 flex items-center">
-                              <input
-                                id={`fav-${movie.id}`}
-                                type="checkbox"
-                                checked={isFavoriteDialog}
-                                onChange={e => setIsFavoriteDialog(e.target.checked)}
-                                className="mr-2 accent-red-600"
-                              />
-                              <label htmlFor={`fav-${movie.id}`} className="text-white text-xs cursor-pointer flex items-center">
-                                <Heart className="h-3 w-3 mr-1" /> Favorito
-                              </label>
-                            </div>
-                            <div className="mb-2">
-                              <label className="block text-white text-xs mb-1">Comentário:</label>
-                              <textarea
-                                className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
-                                value={commentDialog}
-                                onChange={e => setCommentDialog(e.target.value)}
-                                rows={2}
-                                maxLength={100}
-                                placeholder="Comentário (opcional)"
-                              />
-                            </div>
-                            <div className="flex justify-end space-x-2 mt-3">
-                              <Button size="sm" variant="ghost" onClick={() => setAddDialogMovieId(null)} className="text-gray-300 hover:text-white text-xs px-2 py-1">Cancelar</Button>
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
-                                disabled={addToWatchlistMutation.isPending}
-                                onClick={() => {
-                                  addToWatchlistMutation.mutate({
-                                    movie_id: movie.id,
-                                    status: selectedStatusDialog,
-                                    favorite: isFavoriteDialog,
-                                    comments: commentDialog,
-                                    rating: undefined
-                                  });
-                                  setAddDialogMovieId(null);
-                                }}
-                              >
-                                {addToWatchlistMutation.isPending ? 'Salvando...' : 'Salvar'}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
                     </div>
                   )}
 
