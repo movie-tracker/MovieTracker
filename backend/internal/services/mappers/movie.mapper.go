@@ -2,6 +2,7 @@ package mappers
 
 import (
 	"fmt"
+
 	"github.com/movie-tracker/MovieTracker/internal/services/dto"
 )
 
@@ -10,34 +11,64 @@ func MapFromTMDBToMovieDTO(tmdbMovie dto.TMDBMovieDTO) dto.MovieDTO {
 	if len(tmdbMovie.ReleaseDate) >= 4 {
 		year = tmdbMovie.ReleaseDate[:4]
 	}
-	
+
 	// Mapear gêneros
 	genres := make([]string, 0)
 	for _, genre := range tmdbMovie.Genres {
 		genres = append(genres, genre.Name)
 	}
-	
+
 	// Mapear background path
 	backgroundPath := ""
 	if tmdbMovie.BackdropPath != nil {
 		backgroundPath = *tmdbMovie.BackdropPath
 	}
-	
+
 	// Mapear duração
 	duration := ""
 	if tmdbMovie.Runtime > 0 {
 		duration = fmt.Sprintf("%d", tmdbMovie.Runtime)
 	}
-	
+
+	// Converter slices para []any
+	prodCompanies := make([]any, len(tmdbMovie.ProductionCompanies))
+	for i, c := range tmdbMovie.ProductionCompanies {
+		prodCompanies[i] = c
+	}
+	prodCountries := make([]any, len(tmdbMovie.ProductionCountries))
+	for i, c := range tmdbMovie.ProductionCountries {
+		prodCountries[i] = c
+	}
+	spokenLangs := make([]any, len(tmdbMovie.SpokenLanguages))
+	for i, l := range tmdbMovie.SpokenLanguages {
+		spokenLangs[i] = l
+	}
+
 	return dto.MovieDTO{
-		ID:             tmdbMovie.ID,
-		Title:          tmdbMovie.OriginalTitle,
-		PosterPath:     tmdbMovie.PosterPath,
-		BackgroundPath: backgroundPath,
-		Year:           year,
-		Description:    tmdbMovie.Overview,
-		Genre:          genres,
-		Duration:       duration,
+		ID:                  tmdbMovie.ID,
+		Title:               tmdbMovie.OriginalTitle,
+		PosterPath:          tmdbMovie.PosterPath,
+		BackgroundPath:      backgroundPath,
+		Year:                year,
+		Description:         tmdbMovie.Overview,
+		Genre:               genres,
+		Duration:            duration,
+		Tagline:             tmdbMovie.Tagline,
+		VoteAverage:         tmdbMovie.VoteAverage,
+		VoteCount:           tmdbMovie.VoteCount,
+		Popularity:          tmdbMovie.Popularity,
+		Status:              tmdbMovie.Status,
+		ReleaseDate:         tmdbMovie.ReleaseDate,
+		OriginalTitle:       tmdbMovie.OriginalTitle,
+		OriginalLanguage:    tmdbMovie.OriginalLanguage,
+		Homepage:            tmdbMovie.Homepage,
+		ImdbID:              tmdbMovie.ImdbID,
+		Budget:              tmdbMovie.Budget,
+		Revenue:             tmdbMovie.Revenue,
+		Runtime:             tmdbMovie.Runtime,
+		ProductionCompanies: prodCompanies,
+		ProductionCountries: prodCountries,
+		SpokenLanguages:     spokenLangs,
 	}
 }
 

@@ -330,6 +330,63 @@ const MovieDetails = () => {
                   </p>
                 </CardContent>
               </Card>
+              {/* Detalhes extras do TMDb vindos do backend */}
+              {(movie.tagline || movie.vote_average || movie.status || movie.release_date || movie.original_title || movie.budget || movie.production_companies) && (
+                <Card className="bg-black/60 backdrop-blur-sm border-white/20 mt-6">
+                  <CardHeader>
+                    <CardTitle className="text-white text-xl font-bold">Detalhes do Filme</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-6 text-white text-sm">
+                      {movie.tagline && (
+                        <div className="italic text-yellow-300 w-full">"{movie.tagline}"</div>
+                      )}
+                      {movie.vote_average !== undefined && (
+                        <div><b>Nota TMDb:</b> {movie.vote_average?.toFixed(1) ?? '-'} ({movie.vote_count} votos)</div>
+                      )}
+                      {movie.popularity !== undefined && (
+                        <div><b>Popularidade:</b> {movie.popularity}</div>
+                      )}
+                      {movie.status && (
+                        <div><b>Status:</b> {movie.status}</div>
+                      )}
+                      {movie.release_date && (
+                        <div><b>Lançamento:</b> {movie.release_date}</div>
+                      )}
+                      {movie.original_title && (
+                        <div><b>Título original:</b> {movie.original_title}</div>
+                      )}
+                      {movie.original_language && (
+                        <div><b>Idioma original:</b> {movie.original_language.toUpperCase()}</div>
+                      )}
+                      {movie.spoken_languages && movie.spoken_languages.length > 0 && (
+                        <div><b>Idiomas falados:</b> {movie.spoken_languages.map((l: any) => l.english_name || l.name).join(", ")}</div>
+                      )}
+                      {movie.production_countries && movie.production_countries.length > 0 && (
+                        <div><b>Países:</b> {movie.production_countries.map((c: any) => c.name).join(", ")}</div>
+                      )}
+                      {movie.production_companies && movie.production_companies.length > 0 && (
+                        <div><b>Produtoras:</b> {movie.production_companies.map((c: any) => c.name).join(", ")}</div>
+                      )}
+                      {movie.budget && movie.budget > 0 && (
+                        <div><b>Orçamento:</b> {movie.budget.toLocaleString('pt-BR', { style: 'currency', currency: 'USD' })}</div>
+                      )}
+                      {movie.revenue && movie.revenue > 0 && (
+                        <div><b>Receita:</b> {movie.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'USD' })}</div>
+                      )}
+                      {movie.runtime && (
+                        <div><b>Duração:</b> {movie.runtime} min</div>
+                      )}
+                      {movie.homepage && (
+                        <div><b>Site oficial:</b> <a href={movie.homepage} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{movie.homepage}</a></div>
+                      )}
+                      {movie.imdb_id && (
+                        <div><b>IMDb:</b> <a href={`https://www.imdb.com/title/${movie.imdb_id}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">Ver no IMDb</a></div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </main>
