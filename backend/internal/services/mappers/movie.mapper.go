@@ -30,6 +30,28 @@ func MapFromTMDBToMovieDTO(tmdbMovie dto.TMDBMovieDTO) dto.MovieDTO {
 		duration = fmt.Sprintf("%d", tmdbMovie.Runtime)
 	}
 
+	// Buscar tradução em português
+	title := tmdbMovie.Title
+	description := tmdbMovie.Overview
+	tagline := tmdbMovie.Tagline
+
+	if tmdbMovie.Translations != nil {
+		for _, translation := range tmdbMovie.Translations.Translations {
+			if translation.ISO6391 == "pt" || translation.ISO31661 == "BR" {
+				if translation.Data.Title != "" {
+					title = translation.Data.Title
+				}
+				if translation.Data.Overview != "" {
+					description = translation.Data.Overview
+				}
+				if translation.Data.Tagline != "" {
+					tagline = translation.Data.Tagline
+				}
+				break
+			}
+		}
+	}
+
 	// Converter slices para []any
 	prodCompanies := make([]any, len(tmdbMovie.ProductionCompanies))
 	for i, c := range tmdbMovie.ProductionCompanies {
@@ -46,14 +68,14 @@ func MapFromTMDBToMovieDTO(tmdbMovie dto.TMDBMovieDTO) dto.MovieDTO {
 
 	return dto.MovieDTO{
 		ID:                  tmdbMovie.ID,
-		Title:               tmdbMovie.OriginalTitle,
+		Title:               title,
 		PosterPath:          tmdbMovie.PosterPath,
 		BackgroundPath:      backgroundPath,
 		Year:                year,
-		Description:         tmdbMovie.Overview,
+		Description:         description,
 		Genre:               genres,
 		Duration:            duration,
-		Tagline:             tmdbMovie.Tagline,
+		Tagline:             tagline,
 		VoteAverage:         tmdbMovie.VoteAverage,
 		VoteCount:           tmdbMovie.VoteCount,
 		Popularity:          tmdbMovie.Popularity,

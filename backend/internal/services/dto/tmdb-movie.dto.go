@@ -27,6 +27,7 @@ type TMDBMovieDTO struct {
 	Video               bool                `json:"video"`
 	VoteAverage         float64             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
+	Translations        *TranslationsDTO    `json:"translations,omitempty"`
 }
 
 type GenreDTO struct {
@@ -50,4 +51,22 @@ type SpokenLanguageDTO struct {
 	EnglishName string `json:"english_name"`
 	ISO6391     string `json:"iso_639_1"`
 	Name        string `json:"name"`
+}
+
+type TranslationsDTO struct {
+	Translations []TranslationDTO `json:"translations"`
+}
+
+type TranslationDTO struct {
+	ISO31661    string             `json:"iso_3166_1"`
+	ISO6391     string             `json:"iso_639_1"`
+	Name        string             `json:"name"`
+	EnglishName string             `json:"english_name"`
+	Data        TranslationDataDTO `json:"data"`
+}
+
+type TranslationDataDTO struct {
+	Title    string `json:"title"`
+	Overview string `json:"overview"`
+	Tagline  string `json:"tagline"`
 }
