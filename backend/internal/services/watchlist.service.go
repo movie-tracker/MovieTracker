@@ -36,13 +36,24 @@ func (s *WatchListService) GetByUser(userID int32) ([]dto.WatchListDTO, error) {
 
 	var watchlistDTOs = make([]dto.WatchListDTO, 0)
 	for _, item := range watchlistItems {
+		var commentsPtr *string
+		if item.Comments != nil {
+			commentsPtr = item.Comments
+		}
+
+		var ratingPtr *int32
+		if item.Rating != nil {
+			val := int32(*item.Rating)
+			ratingPtr = &val
+		}
+
 		watchlistDTO := dto.WatchListDTO{
 			MovieID:  item.MovieID,
 			UserID:   item.UserID,
 			Status:   item.Status,
 			Favorite: item.Favorite,
-			Comments: item.Comments,
-			Rating:   item.Rating,
+			Comments: commentsPtr,
+			Rating:   ratingPtr,
 		}
 		watchlistDTOs = append(watchlistDTOs, watchlistDTO)
 	}
@@ -56,13 +67,24 @@ func (s *WatchListService) AddToWatchlist(userID int32, createDTO dto.WatchListC
 		return dto.WatchListDTO{}, err
 	}
 
+	var commentsPtr *string
+	if watchListItem.Comments != nil {
+		commentsPtr = watchListItem.Comments
+	}
+
+	var ratingPtr *int32
+	if watchListItem.Rating != nil {
+		val := int32(*watchListItem.Rating)
+		ratingPtr = &val
+	}
+
 	watchlistDTO := dto.WatchListDTO{
 		MovieID:  watchListItem.MovieID,
 		UserID:   watchListItem.UserID,
 		Status:   watchListItem.Status,
 		Favorite: watchListItem.Favorite,
-		Comments: watchListItem.Comments,
-		Rating:   watchListItem.Rating,
+		Comments: commentsPtr,
+		Rating:   ratingPtr,
 	}
 
 	return watchlistDTO, nil
@@ -74,13 +96,24 @@ func (s *WatchListService) UpdateWatchlistItem(userID int32, movieID int, status
 		return dto.WatchListDTO{}, err
 	}
 
+	var commentsPtr *string
+	if watchlistItem.Comments != nil {
+		commentsPtr = watchlistItem.Comments
+	}
+
+	var ratingPtr *int32
+	if watchlistItem.Rating != nil {
+		val := int32(*watchlistItem.Rating)
+		ratingPtr = &val
+	}
+
 	watchlistDTO := dto.WatchListDTO{
 		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
-		Comments: watchlistItem.Comments,
-		Rating:   watchlistItem.Rating,
+		Comments: commentsPtr,
+		Rating:   ratingPtr,
 	}
 
 	return watchlistDTO, nil
@@ -96,13 +129,24 @@ func (s *WatchListService) UpdateStatus(userID int32, movieID int, status string
 		return dto.WatchListDTO{}, err
 	}
 
+	var commentsPtr *string
+	if watchlistItem.Comments != nil {
+		commentsPtr = watchlistItem.Comments
+	}
+
+	var ratingPtr *int32
+	if watchlistItem.Rating != nil {
+		val := int32(*watchlistItem.Rating)
+		ratingPtr = &val
+	}
+
 	watchlistDTO := dto.WatchListDTO{
 		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
-		Comments: watchlistItem.Comments,
-		Rating:   watchlistItem.Rating,
+		Comments: commentsPtr,
+		Rating:   ratingPtr,
 	}
 
 	return watchlistDTO, nil
@@ -114,13 +158,24 @@ func (s *WatchListService) ToggleFavorite(userID int32, movieID int, favorite bo
 		return dto.WatchListDTO{}, err
 	}
 
+	var commentsPtr *string
+	if watchlistItem.Comments != nil {
+		commentsPtr = watchlistItem.Comments
+	}
+
+	var ratingPtr *int32
+	if watchlistItem.Rating != nil {
+		val := int32(*watchlistItem.Rating)
+		ratingPtr = &val
+	}
+
 	watchlistDTO := dto.WatchListDTO{
 		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
-		Comments: watchlistItem.Comments,
-		Rating:   watchlistItem.Rating,
+		Comments: commentsPtr,
+		Rating:   ratingPtr,
 	}
 
 	return watchlistDTO, nil
@@ -132,13 +187,24 @@ func (s *WatchListService) UpdateRating(userID int32, movieID int, rating *int) 
 		return dto.WatchListDTO{}, err
 	}
 
+	var commentsPtr *string
+	if watchlistItem.Comments != nil {
+		commentsPtr = watchlistItem.Comments
+	}
+
+	var ratingPtr *int32
+	if watchlistItem.Rating != nil {
+		val := int32(*watchlistItem.Rating)
+		ratingPtr = &val
+	}
+
 	watchlistDTO := dto.WatchListDTO{
 		MovieID:  watchlistItem.MovieID,
 		UserID:   watchlistItem.UserID,
 		Status:   watchlistItem.Status,
 		Favorite: watchlistItem.Favorite,
-		Comments: watchlistItem.Comments,
-		Rating:   watchlistItem.Rating,
+		Comments: commentsPtr,
+		Rating:   ratingPtr,
 	}
 
 	return watchlistDTO, nil

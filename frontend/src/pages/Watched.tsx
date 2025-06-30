@@ -37,14 +37,16 @@ const WatchedPage = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
-              <Eye className="h-8 w-8 mr-3 text-green-400" />
-              Filmes Assistidos
-            </h1>
-            <p className="text-gray-300">
-              {watchedMovies.length} filme{watchedMovies.length !== 1 ? 's' : ''} assistido{watchedMovies.length !== 1 ? 's' : ''}
-            </p>
+          <div className="flex items-center space-x-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
+                <Eye className="h-8 w-8 mr-3 text-green-400" />
+                Filmes Assistidos
+              </h1>
+              <p className="text-gray-300">
+                {watchedMovies.length} filme{watchedMovies.length !== 1 ? 's' : ''} assistido{watchedMovies.length !== 1 ? 's' : ''}
+              </p>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">

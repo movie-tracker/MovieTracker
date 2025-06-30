@@ -123,9 +123,6 @@ const MovieDetails = () => {
 
   // Função para salvar alterações (status, favorito, comentário, nota)
   const handleSave = async () => {
-    console.log('🔍 DEBUG: handleSave - comment:', comment);
-    console.log('🔍 DEBUG: handleSave - comment tipo:', typeof comment);
-    
     if (!watchlistItem) {
       setSaving(true);
       await addToWatchlistMutation.mutateAsync({
@@ -244,8 +241,6 @@ const MovieDetails = () => {
                       value={comment}
                       onChange={e => {
                         const value = e.target.value;
-                        console.log('🔍 DEBUG: onChange - valor:', value);
-                        console.log('🔍 DEBUG: onChange - valor tipo:', typeof value);
                         setComment(value);
                       }}
                       rows={2}

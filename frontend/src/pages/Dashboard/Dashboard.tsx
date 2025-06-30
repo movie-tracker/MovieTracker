@@ -62,9 +62,11 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-gray-300">Bem-vindo de volta! Aqui está o resumo da sua atividade.</p>
+          <div className="flex items-center space-x-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+              <p className="text-gray-300">Bem-vindo de volta! Aqui está o resumo da sua atividade.</p>
+            </div>
           </div>
           <Link to="/home">
             <Button className="bg-yellow-600 hover:bg-yellow-700">
@@ -251,12 +253,12 @@ const Dashboard = () => {
                   Ver Meus Filmes
                 </Button>
               </Link>
-              <Link to="/explore">
+              <Link to="/home">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <Search className="h-4 w-4 mr-2" />
                   Explorar Filmes
-            </Button>
-          </Link>
+                </Button>
+              </Link>
               <Button variant="outline" className="w-full border-yellow-400 text-yellow-400 hover:bg-yellow-400/20">
                 <Star className="h-4 w-4 mr-2" />
                 Ver Favoritos
