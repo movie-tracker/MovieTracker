@@ -538,8 +538,8 @@ const HomePage = () => {
 
                   {/* Add/Edit Watchlist Popover */}
                   {addDialogMovieId === movie.id && (
-                    <div className="z-50 w-64 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-3 animate-fade-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <div className="mb-2">
+                    <div className="z-50 w-56 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-2 animate-fade-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="mb-1.5">
                         <label className="block text-white text-xs mb-1">Status:</label>
                         <select
                           className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
@@ -552,19 +552,23 @@ const HomePage = () => {
                           <option value="watched">Assistido</option>
                         </select>
                       </div>
-                      <div className="mb-2 flex items-center">
-                        <input
-                          id={`fav-${movie.id}`}
-                          type="checkbox"
-                          checked={isFavoriteDialog}
-                          onChange={e => setIsFavoriteDialog(e.target.checked)}
-                          className="mr-2 accent-red-600"
-                        />
-                        <label htmlFor={`fav-${movie.id}`} className="text-white text-xs cursor-pointer flex items-center">
-                          <Heart className="h-3 w-3 mr-1" /> Favorito
-                        </label>
+                      <div className="mb-1.5 flex items-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setIsFavoriteDialog(!isFavoriteDialog)}
+                          disabled={addToWatchlistMutation.isPending || updateWatchlistMutation.isPending || updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
+                          className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-md transition-colors ${
+                            isFavoriteDialog 
+                              ? 'bg-red-600/20 text-red-400 border border-red-400/50' 
+                              : 'bg-gray-600/20 text-gray-300 border border-gray-400/50 hover:bg-gray-500/20'
+                          }`}
+                        >
+                          <Heart className={`h-3 w-3 ${isFavoriteDialog ? 'fill-current' : ''}`} />
+                          Favoritos
+                        </Button>
                       </div>
-                      <div className="mb-2">
+                      <div className="mb-1.5">
                         <label className="block text-white text-xs mb-1">Comentário:</label>
                         <textarea
                           className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
@@ -575,7 +579,7 @@ const HomePage = () => {
                           maxLength={100}
                         />
                       </div>
-                      <div className="mb-2">
+                      <div className="mb-1.5">
                         <label className="block text-white text-xs mb-1">Nota:</label>
                         <div className="flex items-center space-x-1">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -583,10 +587,10 @@ const HomePage = () => {
                               key={star}
                               type="button"
                               onClick={() => setRatingDialog(ratingDialog === star ? null : star)}
-                              className="text-2xl hover:scale-110 transition-transform duration-200 focus:outline-none"
+                              className="text-xl hover:scale-110 transition-transform duration-200 focus:outline-none"
                             >
                               <Star 
-                                className={`h-6 w-6 ${
+                                className={`h-5 w-5 ${
                                   ratingDialog && star <= ratingDialog 
                                     ? 'fill-yellow-400 text-yellow-400' 
                                     : 'text-gray-400 hover:text-yellow-300'
@@ -599,7 +603,7 @@ const HomePage = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex justify-end space-x-2 mt-3">
+                      <div className="flex justify-end space-x-2 mt-2">
                         <Button size="sm" variant="ghost" onClick={() => setAddDialogMovieId(null)} className="text-gray-300 hover:text-white text-xs px-2 py-1">Cancelar</Button>
                         <Button
                           size="sm"
