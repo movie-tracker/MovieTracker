@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -125,10 +126,29 @@ func (c *WatchlistController) UpdateWatchlistItem(ctx *gin.Context) error {
 		return utils.NewValidationError("error.watchlist.invalid_request", err)
 	}
 
-	watchlistItem, err := c.watchlistService.UpdateWatchlistItem(user.ID, id, req.Status, req.Favorite, req.Comments, req.Rating)
+	// Adicionar logs de debug
+	fmt.Printf("🔍 DEBUG: Recebido request - Status: '%s', Favorite: %v, Comments: '%s', Rating: %v\n", 
+		req.Status, req.Favorite, req.Comments, req.Rating)
+
+	// CORREÇÃO: Converter tipos corretamente para o service
+	var favoritePtr *bool
+	if req.Favorite != nil {
+		favoritePtr = req.Favorite
+	}
+
+	var ratingPtr *int
+	if req.Rating != nil {
+		ratingPtr = req.Rating
+	}
+
+	watchlistItem, err := c.watchlistService.UpdateWatchlistItem(user.ID, id, req.Status, favoritePtr, req.Comments, ratingPtr)
 	if err != nil {
 		return err
 	}
+
+	// Adicionar log da resposta
+	fmt.Printf("🔍 DEBUG: Resposta do service - Status: '%s', Favorite: %v, Comments: '%s', Rating: %v\n", 
+		watchlistItem.Status, watchlistItem.Favorite, watchlistItem.Comments, watchlistItem.Rating)
 
 	ctx.JSON(http.StatusOK, watchlistItem)
 	return nil

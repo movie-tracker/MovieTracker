@@ -44,7 +44,7 @@ const HomePage = () => {
 
   // Adicione estes estados no início do componente HomePage:
   const [addDialogMovieId, setAddDialogMovieId] = useState<number | null>(null);
-  const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus>("plan to watch");
+  const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus | "unwatched">("plan to watch");
   const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
   const [commentDialog, setCommentDialog] = useState<string>("");
   const [ratingDialog, setRatingDialog] = useState<number | null>(null);
@@ -236,7 +236,6 @@ const HomePage = () => {
 
       // Filtro de status otimizado
       if (selectedStatus === "all") return true;
-      if (selectedStatus === "unwatched") return !movie.isInWatchlist;
       if (!movie.isInWatchlist) return false;
       
       return movie.watchlistItem?.status === selectedStatus;
@@ -265,6 +264,25 @@ const HomePage = () => {
       favorites: favoriteItems.length,
   };
   }, [allMovies.length, filteredMovies.length, watchlist, selectedStatus, debouncedSearchTerm]);
+
+  // Obter status únicos da watchlist do usuário
+  const userStatuses = useMemo(() => {
+    const statusSet = new Set<WatchListStatus>();
+    watchlist.forEach((item: WatchListDTO) => {
+      statusSet.add(item.status);
+    });
+    return Array.from(statusSet);
+  }, [watchlist]);
+
+  // Função para obter o nome do status em português
+  const getStatusLabel = (status: WatchListStatus) => {
+    switch (status) {
+      case 'watched': return 'Assistidos';
+      case 'watching': return 'Assistindo';
+      case 'plan to watch': return 'Quero Assistir';
+      default: return status;
+    }
+  };
 
   const isLoading = moviesLoading || watchlistLoading;
 
@@ -342,11 +360,18 @@ const HomePage = () => {
                 className="bg-slate-800 border border-white/20 text-white rounded-md px-3 py-2 focus:border-yellow-400 focus:outline-none"
               >
                 <option value="all">Todos os Filmes</option>
-                <option value="unwatched">Não na Lista</option>
-                <option value="watched">Assistidos</option>
-                <option value="watching">Assistindo</option>
-                <option value="plan to watch">Quero Assistir</option>
+                {userStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {getStatusLabel(status)}
+                  </option>
+                ))}
               </select>
+              <Link
+                to="/my-movies"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Meus Filmes
+              </Link>
               <Button
                 onClick={() => auth.logout()}
                 variant="ghost"
@@ -364,7 +389,7 @@ const HomePage = () => {
 
       {/* Stats - Estatísticas aprimoradas */}
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 justify-center mx-auto max-w-4xl">
           <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("all"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Mostrar todos os filmes">
             <Card className={`bg-white/5 border-white/10 ${selectedStatus === "all" && !showOnlyFavorites ? 'ring-2 ring-yellow-400' : ''}`}>
               <CardContent className="pt-6">
@@ -375,17 +400,7 @@ const HomePage = () => {
               </CardContent>
             </Card>
           </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watched"); setShowOnlyFavorites(false); }} title="Filmes assistidos">
-            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "watched" ? 'ring-2 ring-green-400' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">{stats.watched}</div>
-                  <div className="text-sm text-gray-400">Assistidos</div>
-                </div>
-              </CardContent>
-            </Card>
-          </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watching"); setShowOnlyFavorites(false); }} title="Filmes assistindo">
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watching"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Filmes assistindo">
             <Card className={`bg-white/5 border-white/10 ${selectedStatus === "watching" ? 'ring-2 ring-yellow-400' : ''}`}>
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -395,7 +410,7 @@ const HomePage = () => {
               </CardContent>
             </Card>
           </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("plan to watch"); setShowOnlyFavorites(false); }} title="Filmes que quero assistir">
+          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("plan to watch"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Filmes que quero assistir">
             <Card className={`bg-white/5 border-white/10 ${selectedStatus === "plan to watch" ? 'ring-2 ring-purple-400' : ''}`}>
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -529,8 +544,9 @@ const HomePage = () => {
                         <select
                           className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
                           value={selectedStatusDialog}
-                          onChange={e => setSelectedStatusDialog(e.target.value as WatchListStatus)}
+                          onChange={e => setSelectedStatusDialog(e.target.value as WatchListStatus | "unwatched")}
                         >
+                          <option value="unwatched">Não assistido</option>
                           <option value="plan to watch">Quero Assistir</option>
                           <option value="watching">Assistindo</option>
                           <option value="watched">Assistido</option>
@@ -590,6 +606,18 @@ const HomePage = () => {
                           className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
                           disabled={addToWatchlistMutation.isPending || updateWatchlistMutation.isPending || updateStatusMutation.isPending || toggleFavoriteMutation.isPending}
                           onClick={() => {
+                            if (selectedStatusDialog === "unwatched" && movie.isInWatchlist && movie.watchlistItem) {
+                              watchlistService.removeFromWatchlist(movie.id)
+                                .then(() => {
+                                  queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+                                  toast.success('Filme removido da sua lista!');
+                                })
+                                .catch((error) => {
+                                  toast.error('Erro ao remover filme: ' + (error as Error).message);
+                                });
+                              setAddDialogMovieId(null);
+                              return;
+                            }
                             if (!movie.isInWatchlist || !movie.watchlistItem) {
                               addToWatchlistMutation.mutate({
                                 movie_id: movie.id,

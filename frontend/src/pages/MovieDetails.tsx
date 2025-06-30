@@ -42,7 +42,7 @@ const MovieDetails = () => {
   const watchlistItem = watchlist.find((item) => item.movie_id === movieId);
 
   // Estados locais para edição
-  const [status, setStatus] = useState<WatchListStatus>(watchlistItem?.status || "plan to watch");
+  const [status, setStatus] = useState<WatchListStatus | "unwatched">(watchlistItem?.status || "plan to watch");
   const [favorite, setFavorite] = useState<boolean>(!!watchlistItem?.favorite);
   const [rating, setRating] = useState<number>(watchlistItem?.rating || 0);
   const [comment, setComment] = useState<string>(watchlistItem?.comments || "");
@@ -123,6 +123,14 @@ const MovieDetails = () => {
 
   // Função para salvar alterações (status, favorito, comentário, nota)
   const handleSave = async () => {
+    if (status === "unwatched" && watchlistItem) {
+      setSaving(true);
+      await watchlistService.removeFromWatchlist(movieId);
+      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
+      toast({ title: "Filme removido da sua lista!" });
+      setSaving(false);
+      return;
+    }
     if (!watchlistItem) {
       setSaving(true);
       await addToWatchlistMutation.mutateAsync({
@@ -214,9 +222,10 @@ const MovieDetails = () => {
                     <select
                       className="w-full bg-slate-800 text-white rounded px-2 py-1 border border-white/10 focus:border-yellow-400 text-sm"
                       value={status}
-                      onChange={e => setStatus(e.target.value as WatchListStatus)}
+                      onChange={e => setStatus(e.target.value as WatchListStatus | "unwatched")}
                       disabled={saving}
                     >
+                      <option value="unwatched">Não assistido</option>
                       <option value="plan to watch">Quero Assistir</option>
                       <option value="watching">Assistindo</option>
                       <option value="watched">Assistido</option>
