@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import { WatchListDTO, WatchListStatus, MovieDTO } from "@/types/movie";
 import { watchlistService } from "@/services/watchlistService";
 import { movieService } from "@/services/movieService";
-import { toast } from "sonner";
 import useAuthentication from "@/context/AuthContext";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original";
@@ -24,13 +23,7 @@ const MyMovies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<WatchListStatus | "all">("all");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-
-  // Estados para o popover de edição
-  const [addDialogMovieId, setAddDialogMovieId] = useState<number | null>(null);
-  const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus | "unwatched">("plan to watch");
-  const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
-  const [commentDialog, setCommentDialog] = useState<string>("");
-  const [ratingDialog, setRatingDialog] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<string>("alphabetical-asc");
 
   // Buscar watchlist do usuário
   const { data: watchlist = [], isLoading: watchlistLoading } = useQuery<WatchListDTO[]>({
@@ -44,12 +37,9 @@ const MyMovies = () => {
     queryKey: ['my-movies', watchlist],
     queryFn: async () => {
       if (watchlist.length === 0) return [];
-      
-      // Buscar detalhes de todos os filmes da watchlist
       const moviePromises = watchlist.map(item => 
         movieService.getMovieById(item.movie_id)
       );
-      
       const movies = await Promise.all(moviePromises);
       return movies;
     },
@@ -60,7 +50,6 @@ const MyMovies = () => {
   // Combinar dados dos filmes com dados da watchlist
   const moviesWithStatus = useMemo(() => {
     if (!moviesData || !watchlist) return [];
-    
     return moviesData.map((movie: MovieDTO) => {
       const watchlistItem = watchlist.find((w: WatchListDTO) => w.movie_id === movie.id);
       return {
@@ -71,33 +60,47 @@ const MyMovies = () => {
     });
   }, [moviesData, watchlist]);
 
-  // Filtrar filmes
+  // Filtrar e ordenar filmes
   const filteredMovies = useMemo(() => {
     let filtered = moviesWithStatus;
-
-    // Filtro de busca
     if (searchTerm) {
       filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
         movie.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Filtro de favoritos
     if (showOnlyFavorites) {
       filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
         movie.watchlistItem?.favorite
       );
     }
-
-    // Filtro de status
     if (selectedStatus !== "all") {
       filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
         movie.watchlistItem?.status === selectedStatus
       );
     }
-
-    return filtered;
-  }, [moviesWithStatus, searchTerm, selectedStatus, showOnlyFavorites]);
+    const compare = (a: any, b: any) => {
+      switch (sortOption) {
+        case "alphabetical-asc":
+          return a.title.localeCompare(b.title);
+        case "alphabetical-desc":
+          return b.title.localeCompare(a.title);
+        case "rating-desc":
+          return (b.watchlistItem?.rating || 0) - (a.watchlistItem?.rating || 0);
+        case "rating-asc":
+          return (a.watchlistItem?.rating || 0) - (b.watchlistItem?.rating || 0);
+        case "year-desc":
+          return Number(b.year) - Number(a.year);
+        case "year-asc":
+          return Number(a.year) - Number(b.year);
+        case "status":
+          const order: Record<string, number> = { watched: 0, watching: 1, "plan to watch": 2, unwatched: 3 };
+          return (order[String(a.watchlistItem?.status)] ?? 4) - (order[String(b.watchlistItem?.status)] ?? 4);
+        default:
+          return 0;
+      }
+    };
+    return [...filtered].sort(compare);
+  }, [moviesWithStatus, searchTerm, selectedStatus, showOnlyFavorites, sortOption]);
 
   // Estatísticas
   const stats = useMemo(() => {
@@ -105,7 +108,6 @@ const MyMovies = () => {
     const watchingItems = watchlist.filter((item: WatchListDTO) => item.status === 'watching');
     const planToWatchItems = watchlist.filter((item: WatchListDTO) => item.status === 'plan to watch');
     const favoriteItems = watchlist.filter((item: WatchListDTO) => item.favorite);
-
     return {
       total: watchlist.length,
       watched: watchedItems.length,
@@ -132,22 +134,6 @@ const MyMovies = () => {
       case 'watching': return 'Assistindo';
       case 'plan to watch': return 'Quero Assistir';
       default: return status;
-    }
-  };
-
-  // Função para abrir o popover de edição
-  const openAddDialog = (movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
-    setAddDialogMovieId(movie.id);
-    if (movie.isInWatchlist && movie.watchlistItem) {
-      setSelectedStatusDialog(movie.watchlistItem.status);
-      setIsFavoriteDialog(!!movie.watchlistItem.favorite);
-      setCommentDialog(movie.watchlistItem.comments || "");
-      setRatingDialog(typeof movie.watchlistItem.rating === 'number' ? movie.watchlistItem.rating : null);
-    } else {
-      setSelectedStatusDialog("plan to watch");
-      setIsFavoriteDialog(false);
-      setCommentDialog("");
-      setRatingDialog(null);
     }
   };
 
@@ -207,6 +193,20 @@ const MyMovies = () => {
                     {getStatusLabel(status)}
                   </option>
                 ))}
+              </select>
+              <select
+                value={sortOption}
+                onChange={e => setSortOption(e.target.value)}
+                className="bg-slate-800 border border-white/20 text-white rounded-md px-3 py-2 focus:border-yellow-400 focus:outline-none"
+                title="Ordenar por"
+              >
+                <option value="alphabetical-asc">A-Z (Ordem Alfabética)</option>
+                <option value="alphabetical-desc">Z-A (Ordem Alfabética)</option>
+                <option value="rating-desc">Nota (Maior para Menor)</option>
+                <option value="rating-asc">Nota (Menor para Maior)</option>
+                <option value="year-desc">Ano (Mais Recente)</option>
+                <option value="year-asc">Ano (Mais Antigo)</option>
+                <option value="status">Status</option>
               </select>
             </div>
           </div>
@@ -285,11 +285,10 @@ const MyMovies = () => {
                       e.currentTarget.src = "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
                     }}
                   />
-                  
                   {/* Status Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 left-2 z-20">
-                      <Badge className={`${
+                      <Badge className={`$${
                         movie.watchlistItem.status === 'watched' ? 'bg-green-600' :
                         movie.watchlistItem.status === 'watching' ? 'bg-yellow-600' :
                         movie.watchlistItem.status === 'plan to watch' ? 'bg-blue-600' :
@@ -302,7 +301,6 @@ const MyMovies = () => {
                       </Badge>
                     </div>
                   )}
-
                   {/* Favorite Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 right-2 z-20 flex gap-2">
@@ -318,14 +316,13 @@ const MyMovies = () => {
                         className="bg-white hover:bg-gray-200 text-black border-0 p-1 h-7 w-7 shadow-lg ring-2 ring-gray-300 focus:ring-4 focus:ring-gray-400"
                         title="Editar detalhes"
                         onClick={() => {
-                          openAddDialog(movie);
+                          // Aqui poderia abrir um modal de edição se implementado
                         }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
-
                   {/* Rating Badge */}
                   {movie.isInWatchlist && movie.watchlistItem?.rating && (
                     <div className="absolute top-12 right-2 z-20">
@@ -335,7 +332,6 @@ const MyMovies = () => {
                       </Badge>
                     </div>
                   )}
-
                   {/* Overlay com informações */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
                     <div className="text-center text-white p-4">
@@ -350,7 +346,6 @@ const MyMovies = () => {
                     </div>
                   </div>
                 </div>
-
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-white text-sm mb-1 truncate">{movie.title || 'Título não disponível'}</h3>
                   <p className="text-gray-400 text-xs">{movie.year || 'N/A'} • {movie.duration || 'N/A'}</p>
