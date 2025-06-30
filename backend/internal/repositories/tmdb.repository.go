@@ -59,29 +59,36 @@ func (r *TMDBRepository) login() error {
 func (r *TMDBRepository) DiscoverMovies(page int) (dto.Pagination[dto.TMDBMovieDTO], error) {
 	var err error
 	var movies dto.Pagination[dto.TMDBMovieDTO]
-	
+
 	// Construir URL com parâmetros de paginação
 	endpoint, err := r.getEndpoint("/discover/movie")
 	if err != nil {
 		return movies, err
 	}
-	
+
 	// Adicionar parâmetros de query
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return movies, err
 	}
-	
+
 	q := u.Query()
 	q.Set("page", fmt.Sprintf("%d", page))
-	q.Set("sort_by", "popularity.desc") // Ordenar por popularidade
-	q.Set("include_adult", "false")     // Excluir conteúdo adulto
-	q.Set("include_video", "false")     // Excluir vídeos
-	q.Set("language", "pt-BR")          // Idioma português
-	q.Set("region", "BR")               // Região Brasil
-	
+	q.Set("sort_by", "popularity.desc")       // Ordenar por popularidade
+	q.Set("include_adult", "false")           // Excluir conteúdo adulto
+	q.Set("include_video", "false")           // Excluir vídeos
+	q.Set("language", "pt-BR")                // Idioma português
+	q.Set("region", "BR")                     // Região Brasil
+	q.Set("certification_country", "BR")      // Classificação brasileira
+	q.Set("certification.lte", "12")          // Máximo classificação 12 anos (mais restritivo)
+	q.Set("with_release_type", "2|3")         // Apenas lançamentos teatrais e digitais
+	q.Set("without_genres", "27,10749,10751") // Excluir horror, romance e família (pode conter conteúdo inadequado)
+	q.Set("vote_count.gte", "10")             // Apenas filmes com pelo menos 10 votos
+
 	u.RawQuery = q.Encode()
-	
+
+	fmt.Printf("🔍 DEBUG: URL da API TMDB: %s\n", u.String())
+
 	response, err := r.fetch("GET", u.String(), nil)
 	if err != nil {
 		return movies, err
@@ -92,6 +99,21 @@ func (r *TMDBRepository) DiscoverMovies(page int) (dto.Pagination[dto.TMDBMovieD
 	if err != nil {
 		return movies, fmt.Errorf("failed to decode movie data: %w", err)
 	}
+
+	// Filtrar filmes adultos que possam ter passado pelo filtro da API
+	var filteredResults []dto.TMDBMovieDTO
+	for _, movie := range movies.Results {
+		if !movie.Adult {
+			filteredResults = append(filteredResults, movie)
+		} else {
+			fmt.Printf("🚫 DEBUG: Filme adulto filtrado: %s (ID: %d)\n", movie.Title, movie.ID)
+		}
+	}
+
+	movies.Results = filteredResults
+	movies.TotalResults = len(filteredResults)
+
+	fmt.Printf("✅ DEBUG: Total de filmes retornados: %d (após filtro)\n", len(filteredResults))
 
 	return movies, nil
 }

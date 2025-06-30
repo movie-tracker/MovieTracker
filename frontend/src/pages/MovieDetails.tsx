@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Star, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Star, Clock, Calendar, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -232,17 +232,20 @@ const MovieDetails = () => {
                     </select>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      id="fav-checkbox"
-                      type="checkbox"
-                      checked={favorite}
-                      onChange={handleToggleFavorite}
-                      className="accent-red-600"
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleToggleFavorite}
                       disabled={saving}
-                    />
-                    <label htmlFor="fav-checkbox" className="text-white text-xs cursor-pointer flex items-center">
-                      <Star className="h-3 w-3 mr-1" /> Favorito
-                    </label>
+                      className={`flex items-center gap-2 text-xs px-3 py-2 rounded-md transition-colors ${
+                        favorite 
+                          ? 'bg-red-600/20 text-red-400 border border-red-400/50' 
+                          : 'bg-gray-600/20 text-gray-300 border border-gray-400/50 hover:bg-gray-500/20'
+                      }`}
+                    >
+                      <Heart className={`h-3 w-3 ${favorite ? 'fill-current' : ''}`} />
+                      Favoritos
+                    </Button>
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-white mb-1">Comentário:</label>
