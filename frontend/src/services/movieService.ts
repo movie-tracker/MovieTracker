@@ -33,7 +33,7 @@ export const movieService = {
 
   // Buscar filme por ID
   async getMovieById(id: number): Promise<MovieDTO> {
-    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOVIE_BY_ID(id)), {
+    const response = await fetch(`http://localhost:8888/api/movies/${id}`, {
       headers: getAuthHeaders(),
     });
     
