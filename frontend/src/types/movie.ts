@@ -23,6 +23,23 @@ export interface MovieDTO {
   description: string;
   genre: string[];
   duration: string;
+  tmdb_id?: number;
+  tagline?: string;
+  vote_average?: number;
+  vote_count?: number;
+  popularity?: number;
+  status?: string;
+  release_date?: string;
+  original_title?: string;
+  original_language?: string;
+  homepage?: string;
+  imdb_id?: string;
+  budget?: number;
+  revenue?: number;
+  runtime?: number;
+  production_companies?: any[];
+  production_countries?: any[];
+  spoken_languages?: any[];
 }
 
 export type WatchListStatus = 'unwatched' | 'watching' | 'plan to watch' | 'watched';
