@@ -24,32 +24,26 @@ const MovieDetails = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Busca detalhes do filme
   const { data: movie, isLoading, error } = useQuery<MovieDTO>({
     queryKey: ["movie", id],
     queryFn: () => movieService.getMovieById(movieId),
     enabled: !!id,
   });
 
-  // Busca a watchlist do usuário
   const { data: watchlist = [], isLoading: watchlistLoading } = useQuery<WatchListDTO[]>({
     queryKey: ["watchlist"],
     queryFn: watchlistService.getUserWatchlist,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Encontra o item da watchlist para este filme
   const watchlistItem = watchlist.find((item) => item.movie_id === movieId);
 
-  // Estados locais para edição
   const [status, setStatus] = useState<WatchListStatus | "unwatched">(watchlistItem?.status || "plan to watch");
   const [favorite, setFavorite] = useState<boolean>(!!watchlistItem?.favorite);
   const [rating, setRating] = useState<number>(watchlistItem?.rating || 0);
   const [comment, setComment] = useState<string>(watchlistItem?.comments || "");
-  // Para feedback de loading
   const [saving, setSaving] = useState(false);
 
-  // Atualiza estados locais quando watchlistItem muda
   useEffect(() => {
     if (watchlistItem) {
       setStatus(watchlistItem.status);
@@ -64,7 +58,6 @@ const MovieDetails = () => {
     }
   }, [watchlistItem]);
 
-  // Mutations
   const addToWatchlistMutation = useMutation({
     mutationFn: (data: WatchListCreateDTO) => watchlistService.addToWatchlist(data),
     onSuccess: () => {
@@ -121,7 +114,6 @@ const MovieDetails = () => {
     );
   }
 
-  // Função para salvar alterações (status, favorito, comentário, nota)
   const handleSave = async () => {
     if (status === "unwatched" && watchlistItem) {
       setSaving(true);
@@ -154,7 +146,6 @@ const MovieDetails = () => {
     setSaving(false);
   };
 
-  // Função para favoritar/desfavoritar
   const handleToggleFavorite = async () => {
     if (!watchlistItem) {
       await addToWatchlistMutation.mutateAsync({ movie_id: movieId, status, favorite: !favorite });
@@ -164,7 +155,6 @@ const MovieDetails = () => {
     setFavorite((f) => !f);
   };
 
-  // Função para alterar nota
   const handleRatingChange = async (star: number) => {
     setRating(star);
     if (!watchlistItem) {
@@ -182,16 +172,13 @@ const MovieDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-90"
         style={{ backgroundImage: `url(${getImageUrl(movie.background_path)})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent" />
 
-      {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
         <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
           <div className="container mx-auto px-6 py-4">
             <Link 
@@ -204,10 +191,8 @@ const MovieDetails = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="container mx-auto px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Left Column - Poster */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
                 <img
@@ -215,7 +200,6 @@ const MovieDetails = () => {
                   alt={movie.title}
                   className="w-64 mx-auto rounded-lg shadow-2xl"
                 />
-                {/* Quick Actions */}
                 <div className="mt-6 space-y-3">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs text-white mb-1">Status:</label>
@@ -297,9 +281,7 @@ const MovieDetails = () => {
                 </div>
               </div>
             </div>
-            {/* Right Column - Details */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Title and Basic Info */}
               <div>
                 <h1 className="text-4xl font-bold text-white mb-4">
                   {movie.title}
@@ -322,7 +304,6 @@ const MovieDetails = () => {
                   ))}
                 </div>
               </div>
-              {/* Description */}
               <Card className="bg-black/60 backdrop-blur-sm border-white/20">
                 <CardHeader>
                   <CardTitle className="text-white text-xl font-bold">Sinopse</CardTitle>
@@ -333,7 +314,6 @@ const MovieDetails = () => {
                   </p>
                 </CardContent>
               </Card>
-              {/* Detalhes extras do TMDb vindos do backend */}
               {(movie.tagline || movie.vote_average || movie.status || movie.release_date || movie.original_title || movie.budget || movie.production_companies) && (
                 <Card className="bg-black/60 backdrop-blur-sm border-white/20 mt-6">
                   <CardHeader>

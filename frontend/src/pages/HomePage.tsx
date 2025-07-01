@@ -20,7 +20,6 @@ function getPosterUrl(posterPath?: string) {
   return posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`;
 }
 
-// Debounce hook otimizado
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -33,23 +32,21 @@ function useDebounce<T>(value: T, delay: number): T {
 const HomePage = () => {
   const auth = useAuthentication();
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Reduzido de 400 para 300ms
+  const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const [selectedStatus, setSelectedStatus] = useState<WatchListStatus | "all">("all");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const queryClient = useQueryClient();
   const { ref, inView } = useInView({
     threshold: 0.1,
-    rootMargin: "200px" // Aumentado para começar a carregar mais cedo
+    rootMargin: "200px"
   });
 
-  // Adicione estes estados no início do componente HomePage:
   const [addDialogMovieId, setAddDialogMovieId] = useState<number | null>(null);
   const [selectedStatusDialog, setSelectedStatusDialog] = useState<WatchListStatus | "unwatched">("plan to watch");
   const [isFavoriteDialog, setIsFavoriteDialog] = useState(false);
   const [commentDialog, setCommentDialog] = useState<string>("");
   const [ratingDialog, setRatingDialog] = useState<number | null>(null);
 
-  // Query otimizada com busca local nos dados já carregados
   const {
     data: moviesData,
     fetchNextPage,
@@ -58,15 +55,17 @@ const HomePage = () => {
     isLoading: moviesLoading,
     error: moviesError,
   } = useInfiniteQuery({
-    queryKey: ["movies-infinite"],
+    queryKey: ["movies-infinite", debouncedSearchTerm],
     queryFn: async ({ pageParam = 1 }) => {
-      console.log(`Buscando página ${pageParam}...`);
       try {
-        const result = await movieService.getMovies(pageParam);
-        console.log(`Página ${pageParam} carregada com ${result.results?.length || 0} filmes`);
+        let result;
+        if (debouncedSearchTerm) {
+          result = await movieService.searchMovies(debouncedSearchTerm, pageParam);
+        } else {
+          result = await movieService.getMovies(pageParam);
+        }
         return result;
       } catch (error) {
-        console.error(`Erro ao buscar página ${pageParam}:`, error);
         throw error;
       }
     },
@@ -77,33 +76,31 @@ const HomePage = () => {
       return undefined;
     },
     initialPageParam: 1,
-    staleTime: 10 * 60 * 1000, // Aumentado para 10 minutos
-    retry: 2, // Reduzido para 2 tentativas
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000), // Backoff mais rápido
+    staleTime: 10 * 60 * 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData,
   });
 
-  // Watchlist query
   const { data: watchlist = [], isLoading: watchlistLoading } = useQuery<WatchListDTO[]>({
     queryKey: ['watchlist'],
     queryFn: watchlistService.getUserWatchlist,
-    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Efeito otimizado para carregar próxima página
   useEffect(() => {
-    // Desabilitar infinite scroll quando há filtros ativos
-    const hasActiveFilters = selectedStatus !== "all" || debouncedSearchTerm || showOnlyFavorites;
+    const hasActiveFilters = selectedStatus !== "all" || showOnlyFavorites;
     
     if (inView && hasNextPage && !isFetchingNextPage && !hasActiveFilters) {
-      // Debounce do carregamento para evitar múltiplas chamadas
       const timer = setTimeout(() => {
         fetchNextPage();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, selectedStatus, debouncedSearchTerm, showOnlyFavorites]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, selectedStatus, showOnlyFavorites]);
 
-  // Função para abrir o popover e resetar os campos
   const openAddDialog = (movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
     setAddDialogMovieId(movie.id);
     if (movie.isInWatchlist && movie.watchlistItem) {
@@ -119,7 +116,6 @@ const HomePage = () => {
     }
   };
 
-  // Mutation para adicionar filme à watchlist
   const addToWatchlistMutation = useMutation({
     mutationFn: (data: WatchListCreateDTO) => watchlistService.addToWatchlist(data),
     onSuccess: () => {
@@ -131,41 +127,32 @@ const HomePage = () => {
     }
   });
 
-  // Mutation para atualizar status do filme (PATCH /watchlist/:id/status)
   const updateStatusMutation = useMutation({
     mutationFn: (data: { movieId: number, status: WatchListStatus }) => {
-      console.log('🔄 Atualizando status do filme:', data);
       return watchlistService.updateStatus(data.movieId, data.status);
     },
-    onSuccess: (data) => {
-      console.log('✅ Status atualizado com sucesso:', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] });
       toast.success('Status atualizado com sucesso!');
     },
     onError: (error) => {
-      console.error('❌ Erro ao atualizar status:', error);
       toast.error('Erro ao atualizar status: ' + (error as Error).message);
     }
   });
 
-  // Mutation para toggle favorito (PATCH /watchlist/:id/favorite)
   const toggleFavoriteMutation = useMutation({
     mutationFn: (data: { movieId: number, favorite: boolean }) => {
-      console.log('🔄 Toggle favorito do filme:', data);
       return watchlistService.toggleFavorite(data.movieId, data.favorite);
     },
-    onSuccess: (data) => {
-      console.log('✅ Favorito atualizado com sucesso:', data);
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-      toast.success(data.favorite ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!');
+      toast.success(variables.favorite ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!');
     },
     onError: (error) => {
-      console.error('❌ Erro ao atualizar favorito:', error);
       toast.error('Erro ao atualizar favorito: ' + (error as Error).message);
     }
   });
 
-  // Mutation para atualizar filme na watchlist (mantida para compatibilidade com comentários e rating)
   const updateWatchlistMutation = useMutation({
     mutationFn: (data: {
       movieId: number,
@@ -174,39 +161,31 @@ const HomePage = () => {
       comments?: string | null,
       rating?: number | null
     }) => {
-      console.log('🔄 Atualizando watchlist item:', data);
       const requestData = {
         status: data.status,
         favorite: data.favorite,
         comments: data.comments,
         rating: data.rating
       };
-      console.log('📤 Request data sendo enviado:', requestData);
-      console.log('📤 Request data JSON:', JSON.stringify(requestData));
       return watchlistService.updateWatchlistItem(data.movieId, requestData);
     },
-    onSuccess: (data) => {
-      console.log('✅ Watchlist atualizada com sucesso:', data);
-      console.log('🔄 Invalidando cache da watchlist...');
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-      // Força um refetch imediato
       queryClient.refetchQueries({ queryKey: ['watchlist'] });
       toast.success('Lista atualizada com sucesso!');
     },
     onError: (error) => {
-      console.error('❌ Erro ao atualizar watchlist:', error);
       toast.error('Erro ao atualizar lista: ' + (error as Error).message);
     }
   });
 
-  // Processamento otimizado com useMemo
   const allMovies = useMemo(() => {
-    return moviesData?.pages?.flatMap(page => page.results) || [];
+    const movies = moviesData?.pages?.flatMap((page: any) => page.results) || [];
+    return movies;
   }, [moviesData]);
 
-  // Memoização dos filmes com status da watchlist
   const moviesWithStatus = useMemo(() => {
-    return allMovies.map((movie: MovieDTO) => {
+    const movies = allMovies.map((movie: MovieDTO) => {
     const watchlistItem = watchlist.find((w: WatchListDTO) => w.movie_id === movie.id);
     return {
       ...movie,
@@ -214,58 +193,70 @@ const HomePage = () => {
       isInWatchlist: !!watchlistItem
     };
   });
+    return movies;
   }, [allMovies, watchlist]);
 
-  // Filtragem otimizada com memoização
   const filteredMovies = useMemo(() => {
-    if (!debouncedSearchTerm && selectedStatus === "all" && !showOnlyFavorites) {
-      return moviesWithStatus; // Retorna todos se não há filtros
+    if (selectedStatus === "all" && !showOnlyFavorites) {
+      return moviesWithStatus;
     }
 
-    return moviesWithStatus.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
-      // Filtro de busca otimizado (case-insensitive)
-      const matchesSearch = !debouncedSearchTerm || 
-        movie.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    // Se filtro de status está ativo, use a watchlist como fonte principal
+    if (selectedStatus !== "all") {
+      let filtered = watchlist
+        .filter((item: WatchListDTO) => item.status === selectedStatus)
+        .map((item: WatchListDTO) => {
+          // Procura o filme no catálogo carregado, se não achar, cria um objeto mínimo
+          const movie = allMovies.find((m: MovieDTO) => m.id === item.movie_id);
+          return movie
+            ? { ...movie, watchlistItem: item, isInWatchlist: true }
+            : {
+                id: item.movie_id,
+                title: '',
+                year: '',
+                duration: '',
+                poster_path: '',
+                watchlistItem: item,
+                isInWatchlist: true,
+              };
+        });
+      if (showOnlyFavorites) {
+        filtered = filtered.filter((movie: any) => movie.watchlistItem?.favorite);
+      }
+      return filtered;
+    }
 
-      if (!matchesSearch) return false;
-
-      // Filtro de favoritos
+    // Filtro de favoritos no catálogo
+    const filtered = moviesWithStatus.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) => {
       if (showOnlyFavorites) {
         if (!movie.isInWatchlist || !movie.watchlistItem?.favorite) return false;
       }
-
-      // Filtro de status otimizado
-      if (selectedStatus === "all") return true;
-      if (!movie.isInWatchlist) return false;
-      
-      return movie.watchlistItem?.status === selectedStatus;
+      return true;
     });
-  }, [moviesWithStatus, debouncedSearchTerm, selectedStatus, showOnlyFavorites]);
+    return filtered;
+  }, [moviesWithStatus, allMovies, watchlist, selectedStatus, showOnlyFavorites]);
 
-  // Estatísticas otimizadas com memoização
   const stats = useMemo(() => {
     const watchedItems = watchlist.filter((item: WatchListDTO) => item.status === 'watched');
     const watchingItems = watchlist.filter((item: WatchListDTO) => item.status === 'watching');
     const planToWatchItems = watchlist.filter((item: WatchListDTO) => item.status === 'plan to watch');
     const favoriteItems = watchlist.filter((item: WatchListDTO) => item.favorite);
 
-    // Número de filmes sendo exibidos na página atual (sem filtros de busca)
-    const moviesOnCurrentPage = selectedStatus === "all" && !debouncedSearchTerm 
+    const moviesOnCurrentPage = selectedStatus === "all" 
       ? allMovies.length 
       : filteredMovies.length;
 
     return {
-      currentPage: moviesOnCurrentPage, // Filmes na página atual
-      showing: filteredMovies.length, // Filmes sendo exibidos (com filtros)
-    inWatchlist: watchlist.length,
+      currentPage: moviesOnCurrentPage,
+      showing: filteredMovies.length,
+      inWatchlist: watchlist.length,
       watched: watchedItems.length,
       watching: watchingItems.length,
       planToWatch: planToWatchItems.length,
       favorites: favoriteItems.length,
   };
-  }, [allMovies.length, filteredMovies.length, watchlist, selectedStatus, debouncedSearchTerm]);
+  }, [allMovies.length, filteredMovies.length, watchlist, selectedStatus]);
 
-  // Obter status únicos da watchlist do usuário
   const userStatuses = useMemo(() => {
     const statusSet = new Set<WatchListStatus>();
     watchlist.forEach((item: WatchListDTO) => {
@@ -274,7 +265,6 @@ const HomePage = () => {
     return Array.from(statusSet);
   }, [watchlist]);
 
-  // Função para obter o nome do status em português
   const getStatusLabel = (status: WatchListStatus) => {
     switch (status) {
       case 'watched': return 'Assistidos';
@@ -286,7 +276,9 @@ const HomePage = () => {
 
   const isLoading = moviesLoading || watchlistLoading;
 
-  if (isLoading) {
+  const isSearching = debouncedSearchTerm && moviesLoading;
+
+  if (isLoading && !moviesData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center">
         <div className="text-white text-xl">Carregando filmes...</div>
@@ -295,7 +287,6 @@ const HomePage = () => {
   }
 
   if (moviesError) {
-    console.error('Erro detalhado:', moviesError);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center">
         <div className="text-center text-white">
@@ -319,7 +310,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      {/* Header */}
       <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -341,21 +331,36 @@ const HomePage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative">
+              <div className="relative" onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}>
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   type="text"
                   placeholder="Buscar filmes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
+                  onSubmit={(e) => e.preventDefault()}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 w-64"
                 />
+                {debouncedSearchTerm && moviesLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                  </div>
+                )}
               </div>
               <select
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value as WatchListStatus | "all");
-                  setShowOnlyFavorites(false); // Reset favoritos quando outro filtro é selecionado
+                  setShowOnlyFavorites(false);
                 }}
                 className="bg-slate-800 border border-white/20 text-white rounded-md px-3 py-2 focus:border-yellow-400 focus:outline-none"
               >
@@ -387,57 +392,36 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* Stats - Estatísticas aprimoradas */}
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 justify-center mx-auto max-w-4xl">
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("all"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Mostrar todos os filmes">
-            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "all" && !showOnlyFavorites ? 'ring-2 ring-yellow-400' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">{allMovies.length}</div>
-                  <div className="text-sm text-gray-400">Filmes</div>
-                </div>
-              </CardContent>
-            </Card>
-          </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("watching"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Filmes assistindo">
-            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "watching" ? 'ring-2 ring-yellow-400' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-400">{stats.watching}</div>
-                  <div className="text-sm text-gray-400">Assistindo</div>
-                </div>
-              </CardContent>
-            </Card>
-          </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("plan to watch"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Filmes que quero assistir">
-            <Card className={`bg-white/5 border-white/10 ${selectedStatus === "plan to watch" ? 'ring-2 ring-purple-400' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">{stats.planToWatch}</div>
-                  <div className="text-sm text-gray-400">Quero Assistir</div>
-                </div>
-              </CardContent>
-            </Card>
-          </button>
-          <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setShowOnlyFavorites(true); setSelectedStatus("all"); }} title="Filmes favoritos">
-            <Card className={`bg-white/5 border-white/10 ${showOnlyFavorites ? 'ring-2 ring-red-400' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-400">{stats.favorites}</div>
-                  <div className="text-sm text-gray-400">Favoritos</div>
-                </div>
-              </CardContent>
-            </Card>
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 justify-center mx-auto max-w-5xl">
+          <div className="flex justify-center w-full col-span-1 md:col-span-5">
+            <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("all"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Mostrar todos os filmes">
+              <Card className={`bg-white/5 border-white/10 ${selectedStatus === "all" && !showOnlyFavorites ? 'ring-2 ring-yellow-400' : ''}`}>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{allMovies.length}</div>
+                    <div className="text-sm text-gray-400">Filmes</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-6 pb-8">
+      <main className="container mx-auto px-6 pb-8 relative">
+        {isSearching && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-400"></div>
+              <span className="text-white">Buscando filmes...</span>
+            </div>
+          </div>
+        )}
+        
         {filteredMovies.length > 0 ? (
           <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 transition-all duration-300">
               {filteredMovies.map((movie, index) => (
                 <Card key={`${movie.id}-${index}`} className="group bg-white/5 border-white/10 hover:border-yellow-400/50 transition-all duration-300 overflow-hidden">
                 <div className="relative">
@@ -445,13 +429,12 @@ const HomePage = () => {
                     src={getPosterUrl(movie.poster_path)}
                     alt={movie.title}
                     className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy" // Lazy loading para melhor performance
+                      loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
                       }}
                   />
                   
-                  {/* Status Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 left-2 z-20">
                       <Button
@@ -467,7 +450,6 @@ const HomePage = () => {
                           } else {
                             newStatus = 'plan to watch';
                           }
-                          console.log('[PATCH STATUS] movieId:', movie.id, 'novo status:', newStatus);
                           updateStatusMutation.mutate({
                             movieId: movie.id,
                             status: newStatus
@@ -489,14 +471,12 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Favorite Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 right-2 z-20 flex gap-2">
                       <Button
                         size="sm"
                         onClick={() => {
                           if (!movie.watchlistItem) return;
-                          console.log('[PATCH FAVORITE] movieId:', movie.id, 'novo favorito:', !movie.watchlistItem.favorite);
                           toggleFavoriteMutation.mutate({
                             movieId: movie.id,
                             favorite: !movie.watchlistItem.favorite
@@ -526,7 +506,6 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Rating Badge */}
                   {movie.isInWatchlist && movie.watchlistItem?.rating && (
                     <div className="absolute top-12 right-2 z-20">
                       <Badge className="bg-yellow-600 text-white border-0">
@@ -536,7 +515,6 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Add/Edit Watchlist Popover */}
                   {addDialogMovieId === movie.id && (
                     <div className="z-50 w-56 bg-slate-900 border border-white/20 rounded-lg shadow-xl p-2 animate-fade-in absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                       <div className="mb-1.5">
@@ -631,7 +609,6 @@ const HomePage = () => {
                                 rating: ratingDialog
                               });
                             } else {
-                              // Atualizar item existente
                               const requestData = {
                                 movieId: movie.id,
                                 status: selectedStatusDialog,
@@ -650,7 +627,6 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Add to Watchlist Button */}
                   {!movie.isInWatchlist && (
                       <div className="absolute top-2 right-2 flex flex-col items-end z-20">
                       <Button
@@ -665,7 +641,6 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Overlay com informações */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
                     <div className="text-center text-white p-4">
                         <h3 className="font-bold text-lg mb-2">{movie.title || 'Título não disponível'}</h3>
@@ -688,7 +663,6 @@ const HomePage = () => {
             ))}
           </div>
 
-            {/* Elemento de trigger para infinite scroll */}
             <div ref={ref} className="h-20 flex items-center justify-center mt-8">
               {isFetchingNextPage && (
                 <div className="flex items-center space-x-2 text-white">
@@ -698,7 +672,9 @@ const HomePage = () => {
               )}
               {!hasNextPage && allMovies.length > 0 && (
                 <span className="text-gray-400">
-                  {selectedStatus !== "all" || debouncedSearchTerm || showOnlyFavorites 
+                  {debouncedSearchTerm 
+                    ? `Mostrando ${filteredMovies.length} filmes encontrados para "${debouncedSearchTerm}"` 
+                    : selectedStatus !== "all" || showOnlyFavorites
                     ? `Mostrando ${filteredMovies.length} filmes encontrados` 
                     : "Você chegou ao final! 🎬"
                   }

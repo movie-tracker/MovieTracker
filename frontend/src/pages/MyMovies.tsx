@@ -25,14 +25,12 @@ const MyMovies = () => {
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [sortOption, setSortOption] = useState<string>("alphabetical-asc");
 
-  // Buscar watchlist do usuário
   const { data: watchlist = [], isLoading: watchlistLoading } = useQuery<WatchListDTO[]>({
     queryKey: ['watchlist'],
     queryFn: watchlistService.getUserWatchlist,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Buscar detalhes dos filmes da watchlist
   const { data: moviesData, isLoading: moviesLoading } = useQuery({
     queryKey: ['my-movies', watchlist],
     queryFn: async () => {
@@ -47,7 +45,6 @@ const MyMovies = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Combinar dados dos filmes com dados da watchlist
   const moviesWithStatus = useMemo(() => {
     if (!moviesData || !watchlist) return [];
     return moviesData.map((movie: MovieDTO) => {
@@ -60,7 +57,6 @@ const MyMovies = () => {
     });
   }, [moviesData, watchlist]);
 
-  // Filtrar e ordenar filmes
   const filteredMovies = useMemo(() => {
     let filtered = moviesWithStatus;
     if (searchTerm) {
@@ -102,7 +98,6 @@ const MyMovies = () => {
     return [...filtered].sort(compare);
   }, [moviesWithStatus, searchTerm, selectedStatus, showOnlyFavorites, sortOption]);
 
-  // Estatísticas
   const stats = useMemo(() => {
     const watchedItems = watchlist.filter((item: WatchListDTO) => item.status === 'watched');
     const watchingItems = watchlist.filter((item: WatchListDTO) => item.status === 'watching');
@@ -118,7 +113,6 @@ const MyMovies = () => {
     };
   }, [watchlist, filteredMovies.length]);
 
-  // Obter status únicos da watchlist
   const userStatuses = useMemo(() => {
     const statusSet = new Set<WatchListStatus>();
     watchlist.forEach((item: WatchListDTO) => {
@@ -127,7 +121,6 @@ const MyMovies = () => {
     return Array.from(statusSet);
   }, [watchlist]);
 
-  // Função para obter o nome do status em português
   const getStatusLabel = (status: WatchListStatus) => {
     switch (status) {
       case 'watched': return 'Assistidos';
@@ -149,7 +142,6 @@ const MyMovies = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      {/* Header */}
       <header className="bg-black/30 backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -213,7 +205,6 @@ const MyMovies = () => {
         </div>
       </header>
 
-      {/* Stats */}
       <div className="container mx-auto px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 justify-center mx-auto max-w-5xl">
           <button className="focus:outline-none" style={{all: 'unset', cursor: 'pointer'}} onClick={() => { setSelectedStatus("all"); setShowOnlyFavorites(false); setSearchTerm(""); }} title="Mostrar todos os meus filmes">
@@ -269,7 +260,6 @@ const MyMovies = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="container mx-auto px-6 pb-8">
         {filteredMovies.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -285,23 +275,33 @@ const MyMovies = () => {
                       e.currentTarget.src = "https://via.placeholder.com/300x450/666666/FFFFFF?text=Filme";
                     }}
                   />
-                  {/* Status Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 left-2 z-20">
-                      <Badge className={`$${
-                        movie.watchlistItem.status === 'watched' ? 'bg-green-600' :
-                        movie.watchlistItem.status === 'watching' ? 'bg-yellow-600' :
-                        movie.watchlistItem.status === 'plan to watch' ? 'bg-blue-600' :
-                        'bg-red-600'
-                      } text-white border-0 text-xs px-2 py-1`}>
-                        {movie.watchlistItem.status === 'watched' ? 'Assistido' :
-                         movie.watchlistItem.status === 'watching' ? 'Assistindo' :
-                         movie.watchlistItem.status === 'plan to watch' ? 'Quero Assistir' :
-                         'Não Assistido'}
-                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className={
+                          `${
+                            movie.watchlistItem.status === 'watched'
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : movie.watchlistItem.status === 'watching'
+                              ? 'bg-yellow-600 hover:bg-yellow-700'
+                              : movie.watchlistItem.status === 'plan to watch'
+                              ? '!bg-blue-600 !hover:bg-blue-700'
+                              : 'bg-red-600 hover:bg-red-700'
+                          } text-white border-0 text-xs px-2 py-1 h-6`
+                        }
+                      >
+                        {movie.watchlistItem.status === 'watched'
+                          ? 'Assistido'
+                          : movie.watchlistItem.status === 'watching'
+                          ? 'Assistindo'
+                          : movie.watchlistItem.status === 'plan to watch'
+                          ? 'Quero Assistir'
+                          : 'Não Assistido'}
+                      </Button>
                     </div>
                   )}
-                  {/* Favorite Badge */}
                   {movie.isInWatchlist && movie.watchlistItem && (
                     <div className="absolute top-2 right-2 z-20 flex gap-2">
                       {movie.watchlistItem.favorite && (
@@ -316,14 +316,12 @@ const MyMovies = () => {
                         className="bg-white hover:bg-gray-200 text-black border-0 p-1 h-7 w-7 shadow-lg ring-2 ring-gray-300 focus:ring-4 focus:ring-gray-400"
                         title="Editar detalhes"
                         onClick={() => {
-                          // Aqui poderia abrir um modal de edição se implementado
                         }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
-                  {/* Rating Badge */}
                   {movie.isInWatchlist && movie.watchlistItem?.rating && (
                     <div className="absolute top-12 right-2 z-20">
                       <Badge className="bg-yellow-600 text-white border-0">
@@ -332,7 +330,6 @@ const MyMovies = () => {
                       </Badge>
                     </div>
                   )}
-                  {/* Overlay com informações */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
                     <div className="text-center text-white p-4">
                       <h3 className="font-bold text-lg mb-2">{movie.title || 'Título não disponível'}</h3>
