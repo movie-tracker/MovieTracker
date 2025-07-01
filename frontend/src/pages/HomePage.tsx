@@ -236,27 +236,6 @@ const HomePage = () => {
     return filtered;
   }, [moviesWithStatus, allMovies, watchlist, selectedStatus, showOnlyFavorites]);
 
-  const stats = useMemo(() => {
-    const watchedItems = watchlist.filter((item: WatchListDTO) => item.status === 'watched');
-    const watchingItems = watchlist.filter((item: WatchListDTO) => item.status === 'watching');
-    const planToWatchItems = watchlist.filter((item: WatchListDTO) => item.status === 'plan to watch');
-    const favoriteItems = watchlist.filter((item: WatchListDTO) => item.favorite);
-
-    const moviesOnCurrentPage = selectedStatus === "all" 
-      ? allMovies.length 
-      : filteredMovies.length;
-
-    return {
-      currentPage: moviesOnCurrentPage,
-      showing: filteredMovies.length,
-      inWatchlist: watchlist.length,
-      watched: watchedItems.length,
-      watching: watchingItems.length,
-      planToWatch: planToWatchItems.length,
-      favorites: favoriteItems.length,
-  };
-  }, [allMovies.length, filteredMovies.length, watchlist, selectedStatus]);
-
   const userStatuses = useMemo(() => {
     const statusSet = new Set<WatchListStatus>();
     watchlist.forEach((item: WatchListDTO) => {

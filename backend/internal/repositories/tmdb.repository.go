@@ -231,12 +231,6 @@ func (r *TMDBRepository) isMovieAppropriate(movie dto.TMDBMovieDTO) (bool, strin
 		return false, "filme com conteúdo adulto"
 	}
 
-	for _, genre := range movie.Genres {
-		if genre.ID == 27 || genre.ID == 10749 || genre.ID == 10751 || genre.ID == 99 || genre.ID == 10769 {
-			return false, "filme com gênero inadequado"
-		}
-	}
-
 	inappropriateKeywords := []string{
 		"porn", "xxx", "adult", "sex", "nude", "erotic", "pornographic", "explicit",
 		"hardcore", "softcore", "adult film", "adult movie", "sex film", "sex movie",
