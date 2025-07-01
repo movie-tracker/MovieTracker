@@ -37,9 +37,10 @@ const MyMovies = () => {
       if (watchlist.length === 0) return [];
       const moviePromises = watchlist.map(item => 
         movieService.getMovieById(item.movie_id)
+          .catch(() => null)
       );
       const movies = await Promise.all(moviePromises);
-      return movies;
+      return movies.filter(Boolean);
     },
     enabled: watchlist.length > 0,
     staleTime: 10 * 60 * 1000,
@@ -47,7 +48,9 @@ const MyMovies = () => {
 
   const moviesWithStatus = useMemo(() => {
     if (!moviesData || !watchlist) return [];
-    return moviesData.map((movie: MovieDTO) => {
+    return (moviesData as MovieDTO[])
+      .filter((movie): movie is MovieDTO => movie !== null)
+      .map((movie: MovieDTO) => {
       const watchlistItem = watchlist.find((w: WatchListDTO) => w.movie_id === movie.id);
       return {
         ...movie,
@@ -60,17 +63,17 @@ const MyMovies = () => {
   const filteredMovies = useMemo(() => {
     let filtered = moviesWithStatus;
     if (searchTerm) {
-      filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
+      filtered = filtered.filter((movie) =>
         movie.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     if (showOnlyFavorites) {
-      filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
+      filtered = filtered.filter((movie) =>
         movie.watchlistItem?.favorite
       );
     }
     if (selectedStatus !== "all") {
-      filtered = filtered.filter((movie: MovieDTO & { watchlistItem?: WatchListDTO, isInWatchlist?: boolean }) =>
+      filtered = filtered.filter((movie) =>
         movie.watchlistItem?.status === selectedStatus
       );
     }
