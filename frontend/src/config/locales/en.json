@@ -1,0 +1,19 @@
+{
+  "validation": {
+    "required": "This field is required"
+  },
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Login",
+    "forgotPassword": "Forgot your password?",
+    "createAccount": "Create an account",
+    "loading": "Loading..."
+  },
+  "api": {
+    "error.login.invalid_credentials": "Username or password is incorrect"
+  }
+}

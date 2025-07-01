@@ -21,5 +21,17 @@
 go.work
 go.work.sum
 
+# vscode
+.vscode
+
 # env file
 .env
+tmp
+
+# build dir
+bin
+
+
+# Ignore postgres data
+.docker/postgresql
+!.docker/postgresql/.gitkeep

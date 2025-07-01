@@ -1,33 +1,47 @@
 # MovieTracker
 
-<!-- ABOUT THE PROJECT -->
+MovieTracker é uma aplicação web para organizar, buscar e acompanhar seus filmes favoritos. Permite marcar status, favoritar, ver detalhes, filtrar e acompanhar estatísticas do usuário.
 
-## About The Project
+## 🎬 Funcionalidades
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+- Adicionar filmes à sua lista pessoal
+- Marcar filmes como assistidos, não assistidos, favoritos ou para assistir depois
+- Buscar filmes por título, gênero ou ano de lançamento
+- Visualizar detalhes de cada filme (sinopse, elenco, avaliação, etc.)
+- Filtrar e ordenar filmes por diferentes critérios
+- Acompanhar estatísticas pessoais (quantos filmes assistidos, favoritos, etc.)
+- Editar ou remover filmes da lista
+- Interface responsiva e fácil de usar
 
-## About The Project
+## 🛠️ Tecnologias Utilizadas
+- **Frontend:** React, TypeScript, Vite, TailwindCSS, Lucide Icons, React Router
+- **Backend:** Go (Golang)
 
-MovieTracker is a comprehensive movie management and organization tool designed to help movie enthusiasts keep track of their movie collections, watchlists, and viewing history. Whether you are a casual viewer or a dedicated cinephile, MovieTracker provides an intuitive and user-friendly interface to manage your movie data efficiently.
 
-### Key Features:
+## 🚀 Como rodar o projeto
 
-- **Movie Collection Management**: Easily add, edit, and delete movies from your collection. Keep track of essential details such as title, genre, release date, director, cast, and personal ratings.
-- **Watchlist**: Create and manage a watchlist of movies you plan to watch. Set reminders and prioritize movies based on your preferences.
-- **Viewing History**: Log your viewing history to keep track of movies you have watched. Add notes and ratings to each entry to remember your thoughts and impressions.
-- **Search and Filter**: Quickly find movies in your collection or watchlist using advanced search and filter options.
-- **Statistics and Insights**: Gain insights into your movie-watching habits with detailed statistics and visualizations. Track your most-watched genres, directors, and actors.
-- **User Profiles**: Create multiple user profiles to manage movie data for different family members or friends.
+### Pré-requisitos
+- Node.js >= 18
+- Go >= 1.20
 
-### TODO:
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- **Cloud Sync**: Sync your movie data across multiple devices with cloud storage integration.
+### Backend
+```bash
+cd backend
+# Instale as dependências Go se necessário
+go mod tidy
+go run main.go
+```
 
-MovieTracker aims to simplify the process of managing and organizing your movie collection, allowing you to focus on enjoying your favorite films.
+## 📄 Licença
+MIT
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
-### Top contributors:
-
-- Felipe Kelemen Bernardino - 12623884 - felipe.kelemen@usp.br
-- Felipe Kaneshiro de Souza - 11795770 - felipek.souza@usp.br
+Desenvolvido para fins acadêmicos na disciplina MAC0350 - USP

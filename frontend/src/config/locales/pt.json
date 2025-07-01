@@ -1,0 +1,19 @@
+{
+  "validation": {
+    "required": "Este campo é obrigatório"
+  },
+  "login": {
+    "title": "Login",
+    "username": "Usuário",
+    "usernamePlaceholder": "Digite seu usuário",
+    "password": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "submit": "Entrar",
+    "forgotPassword": "Esqueceu sua senha?",
+    "createAccount": "Criar uma conta",
+    "loading": "Carregando..."
+  },
+  "api": {
+    "error.login.invalid_credentials": "Nome de usuário ou senha está incorreto"
+  }
+}
